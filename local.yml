@@ -1,0 +1,59 @@
+name: nakama-local
+data_dir: "./data/"
+
+logger:
+  level: "DEBUG"
+  stdout: true
+  file: "nakama.log"
+
+database:
+  address:
+    - "root@cockroachdb:26257"
+  database: "nakama"
+  conn_max_lifetime_ms: 0
+  max_open_conns: 0
+  max_idle_conns: 0
+
+socket:
+  server_key: "defaultkey"
+  port: 7351
+  protocol: "tcp"
+  address: "0.0.0.0"
+
+console:
+  username: "admin"
+  password: "password"
+  signing_key: "defaultsigningkey"
+  port: 9100
+  read_only: false
+  max_message_size_bytes: 16384
+
+session:
+  token_expiry_sec: 60
+  refresh_token_expiry_sec: 3600
+  refresh_token_encrypt_key: "defaultencryptionkey"
+  refresh_token_encrypt_cipher: "aes-256-gcm"
+
+runtime:
+  go_execution_mode: "interpreted"
+  go_read_only_globals: true
+  go_max_count: 1000
+  js_read_only_globals: true
+  js_max_count: 16
+  js_min_count: 1
+  js_max_heap_size_mb: 0
+  js_max_stack_size_kb: 0
+  lua_max_count: 40000
+  lua_max_instruction_count: 0
+  lua_max_stack_trace_depth: 0
+
+match:
+  input_queue_size: 512
+  call_queue_size: 512
+  join_attempt_queue_size: 512
+  join_marker_deadline_ms: 15000
+  max_empty_sec: 300
+  label_update_interval_ms: 1000
+
+tracker:
+  event_queue_size: 65536

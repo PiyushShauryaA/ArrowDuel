@@ -1,0 +1,7 @@
+nakama-data/
+nakama-modules/
+*.log
+.git/
+.gitignore
+README.md
+TESTING_NAKAMA.md

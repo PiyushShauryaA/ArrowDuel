@@ -1,0 +1,76 @@
+services:
+  # CockroachDB - Database for Nakama
+  cockroachdb:
+    image: cockroachdb/cockroach:v23.1.11
+    container_name: nakama-cockroachdb
+    command: start-single-node --insecure
+    volumes:
+      - cockroachdb-data:/cockroach/cockroach-data
+    ports:
+      - "26257:26257"  # CockroachDB SQL port
+      - "8080:8080"    # CockroachDB Admin UI
+    environment:
+      - COCKROACH_DATABASE=nakama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Nakama Database Migration
+  nakama-migrate:
+    image: heroiclabs/nakama:3.24.0
+    container_name: nakama-migrate
+    depends_on:
+      cockroachdb:
+        condition: service_healthy
+    volumes:
+      - ./local.yml:/nakama/data/local.yml
+    environment:
+      - NAKAMA_DATABASE_URL=root@cockroachdb:26257/nakama?sslmode=disable
+    command:
+      - "migrate"
+      - "up"
+      - "--config"
+      - "/nakama/data/local.yml"
+    restart: "no"
+
+  # Nakama Server
+  nakama:
+    image: heroiclabs/nakama:3.24.0
+    container_name: nakama-server
+    depends_on:
+      cockroachdb:
+        condition: service_healthy
+      nakama-migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./nakama-data:/nakama/data
+      - ./nakama-modules:/nakama/modules
+      - ./local.yml:/nakama/data/local.yml
+    ports:
+      - "7349:7349"  # Nakama gRPC API (legacy)
+      - "7350:7350"  # Nakama gRPC API (Nakama 3.24.0+)
+      - "7351:7351"  # Nakama HTTP API Gateway & WebSocket (Nakama 3.24.0+)
+      - "9100:9100"  # Nakama Console UI
+    environment:
+      - NAKAMA_DATABASE_URL=root@cockroachdb:26257/nakama?sslmode=disable
+      - NAKAMA_LOG_LEVEL=DEBUG
+      - NAKAMA_CONSOLE_USERNAME=admin
+      - NAKAMA_CONSOLE_PASSWORD=password
+    command:
+      - "--config"
+      - "/nakama/data/local.yml"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7350/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  cockroachdb-data:
+    driver: local
