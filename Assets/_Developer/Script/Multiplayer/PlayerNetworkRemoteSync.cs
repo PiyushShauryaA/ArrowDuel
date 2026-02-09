@@ -263,60 +263,22 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         // Interpolate position if needed
         if (lerpPosition)
         {
-            bowTransform.position = Vector3.Lerp(lerpFromPosition, lerpToPosition, lerpTimer / LerpTime);
+            Transform posTarget = (bowTransform == bowController.bowParent) ? transform : bowTransform;
+            posTarget.position = Vector3.Lerp(lerpFromPosition, lerpToPosition, lerpTimer / LerpTime);
             lerpTimer += Time.deltaTime;
 
             if (lerpTimer >= LerpTime)
             {
-                bowTransform.position = lerpToPosition;
+                posTarget.position = lerpToPosition;
                 lerpPosition = false;
             }
         }
 
         // Interpolate rotation if needed AND rotation is enabled
-        if (lerpRotation && rotationEnabled)
-        {
-            lerpTimerRotation += Time.deltaTime; // Use separate timer
-            float currentRotation = Mathf.LerpAngle(lerpFromRotation, lerpToRotation, lerpTimerRotation / LerpTime);
-            Quaternion rotation = Quaternion.Euler(0, 0, currentRotation);
 
-            // Apply rotation to bowParent (the actual rotating transform)
-            bowTransform.rotation = rotation;
 
-            // Also update frontHand and backHand rotations like AutoRotate() does
-            if (bowController.frontHand != null && bowController.backHand != null)
-            {
-                bowController.frontHand.rotation = rotation;
-                bowController.backHand.rotation = rotation * Quaternion.Euler(0f, 0f, -10f);
-            }
-
-            // Debug log every 60 frames to avoid spam
-            if (Time.frameCount % 60 == 0)
-            {
-                //Debug.Log($"[RemoteSync] Lerping - playerID: {bowController.playerID}, " +
-                     //     $"From: {lerpFromRotation:F1}°, " +
-                     //     $"To: {lerpToRotation:F1}°, " +
-                     //     $"Progress: {(lerpTimerRotation / LerpTime):F2}, " +
-                     //     $"Current: {bowTransform.rotation.eulerAngles.z:F1}°");
-            }
-
-            if (lerpTimerRotation >= LerpTime)
-            {
-                bowTransform.rotation = Quaternion.Euler(0, 0, lerpToRotation);
-                if (bowController.frontHand != null && bowController.backHand != null)
-                {
-                    bowController.frontHand.rotation = Quaternion.Euler(0, 0, lerpToRotation);
-                    bowController.backHand.rotation = Quaternion.Euler(0, 0, lerpToRotation - 10f);
-                }
-
-                lerpRotation = false;
-                //Debug.Log($"[RemoteSync] Lerp completed - playerID: {bowController.playerID}, " +
-                    //  $"Final rotation: {lerpToRotation:F1}°, " +
-                   // $"Starting continuous rotation");
-            }
-        }
         // ADD THIS: Continue rotating based on last received autoRotationAngle when not lerping
-        else if (rotationEnabled && !lerpRotation && bowController != null && bowTransform != null)
+        if (rotationEnabled && !lerpRotation && bowController != null && bowTransform != null)
         {
             // Check if we have a valid angle to work with
             if (lastReceivedAutoRotationAngle == float.MinValue)
@@ -417,11 +379,11 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         // Always log when receiving messages to track network flow (but limit spam)
         if (matchState.OpCode == ArrowduelNetworkManager.OPCODE_POSITION_ROTATION || Time.frameCount % 300 == 0)
         {
-            /*Debug.Log($"[RemoteSync] OnReceivedMatchState - playerID: {bowController?.playerID ?? -1}, " +
+            Debug.Log($"[RemoteSync] OnReceivedMatchState - playerID: {bowController?.playerID ?? -1}, " +
                 $"OpCode: {matchState.OpCode}, " +
                 $"Received SessionId: {matchState.UserPresence?.SessionId ?? "NULL"}, " +
                 $"Expected SessionId: {NetworkData?.User?.SessionId ?? "NULL"}, " +
-                $"NetworkData set: {(NetworkData != null && NetworkData.User != null ? "YES" : "NO")}"); */
+                $"NetworkData set: {(NetworkData != null && NetworkData.User != null ? "YES" : "NO")}"); 
         }
 
         // If NetworkData is not set, we can't identify which player this is for
@@ -454,9 +416,9 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         // Log when processing rotation updates - ALWAYS log to track successful receipt
         if (matchState.OpCode == ArrowduelNetworkManager.OPCODE_POSITION_ROTATION)
         {
-            //Debug.Log($"[RemoteSync] Processing rotation update - playerID: {bowController?.playerID ?? -1}, " +
-              //  $"OpCode: {matchState.OpCode}, " +
-              //  $"SessionId match: YES");
+            Debug.Log($"[RemoteSync] Processing rotation update - playerID: {bowController?.playerID ?? -1}, " +
+                $"OpCode: {matchState.OpCode}, " +
+                $"SessionId match: YES");
         }
 
         // Decide what to do based on the Operation Code
@@ -534,7 +496,22 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
 
         float rotationZ = float.Parse(stateDictionary["rotationZ"]);
         float autoRotationAngle = float.Parse(stateDictionary["autoRotationAngle"]);
+        float networkDirection = stateDictionary.ContainsKey("autoRotationDirection")
+    ? float.Parse(stateDictionary["autoRotationDirection"])
+    : 1f;
 
+        bool remoteIsCharging = stateDictionary.ContainsKey("isCharging")
+    && stateDictionary["isCharging"] == "true";
+
+        // Backup: sync rotationEnabled from charging state
+        // Fixes race condition if OPCODE_ROTATION_STOP/START arrives late
+        if (remoteIsCharging && rotationEnabled)
+        {
+            rotationEnabled = false;
+            lerpRotation = false;
+            lerpTimerRotation = 0;
+        }
+        
         // Debug log for rotation sync testing - ALWAYS log to track network updates
         /*Debug.Log($"[RemoteSync] Received - playerID: {bowController?.playerID ?? -1}, " +
                   $"rotationZ: {rotationZ:F1}°, " +
@@ -553,61 +530,12 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         // Only process rotation updates if rotation is enabled
         if (rotationEnabled)
         {
-            // Calculate direction based on change in angle
-            if (lastReceivedAutoRotationAngle != float.MinValue)
-            {
-                // Determine direction from angle change (we have a previous value)
-                float angleDelta = autoRotationAngle - lastReceivedAutoRotationAngle;
-
-                // Handle angle wrapping (e.g., going from 89° to -89° means going down)
-                if (Mathf.Abs(angleDelta) > 90f)
-                {
-                    // Large jump likely means wrapping - determine direction based on which way is shorter
-                    float altDelta1 = (autoRotationAngle + 360f) - lastReceivedAutoRotationAngle;
-                    float altDelta2 = autoRotationAngle - (lastReceivedAutoRotationAngle + 360f);
-
-                    if (Mathf.Abs(altDelta1) < Mathf.Abs(angleDelta) && Mathf.Abs(altDelta1) < Mathf.Abs(altDelta2))
-                        angleDelta = altDelta1;
-                    else if (Mathf.Abs(altDelta2) < Mathf.Abs(angleDelta))
-                        angleDelta = altDelta2;
-                }
-
-                if (angleDelta > 0.1f) // Small threshold to avoid noise
-                {
-                    estimatedRotationDirection = 1f; // Going up
-                }
-                else if (angleDelta < -0.1f)
-                {
-                    estimatedRotationDirection = -1f; // Going down
-                }
-                // If change is very small, keep current direction
-            }
-            else
-            {
-                // First update: estimate direction from position
-                if (autoRotationAngle >= bowController.maxUpAngle - 1f)
-                    estimatedRotationDirection = -1f; // At top, going down
-                else if (autoRotationAngle <= bowController.maxDownAngle + 1f)
-                    estimatedRotationDirection = 1f; // At bottom, going up
-                else
-                {
-                    // Estimate based on position relative to center
-                    float centerAngle = (bowController.maxUpAngle + bowController.maxDownAngle) / 2f;
-                    estimatedRotationDirection = autoRotationAngle > centerAngle ? -1f : 1f;
-                }
-            }
-
-            // Store last received values for continuous rotation
+            // Just correct the internal angle and direction — no lerp
+            bowController.currentAutoRotationAngle = autoRotationAngle;
+            estimatedRotationDirection = networkDirection;  // from network, not estimated
             lastReceivedAutoRotationAngle = autoRotationAngle;
             lastReceivedRotationZ = rotationZ;
-
-            // Use bowParent rotation for lerping
-            lerpFromRotation = bowTransform.rotation.eulerAngles.z;
-            lerpToRotation = rotationZ;
-            lerpTimerRotation = 0; // Reset rotation timer separately
-            lerpRotation = true;
-            // Update auto rotation angle only when rotation is enabled
-            bowController.currentAutoRotationAngle = autoRotationAngle;
+            // Do NOT set lerpRotation = true
         }
         else
         {

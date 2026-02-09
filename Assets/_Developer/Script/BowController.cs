@@ -64,6 +64,9 @@ public class BowController : MonoBehaviour
     // [SerializeField] private bool autoRotate = true;
     public float autoRotationDirection = 1f; // 1 for down, -1 for up
 
+    [Header("Multiplayer")]
+    public bool isRemotePlayer = false; // Set by GameManager — remote players are controlled by network, not local input
+
     private void Awake()
     {
         playerPowerUp = GetComponent<PlayerPowerUp>();

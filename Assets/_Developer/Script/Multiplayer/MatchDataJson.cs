@@ -9,9 +9,9 @@ public static class MatchDataJson
     /// <summary>
     /// Creates JSON string for position and rotation data.
     /// </summary>
-    public static string PositionAndRotation(Vector3 position, float rotationZ, float autoRotationAngle)
+    public static string PositionAndRotation(Vector3 position, float rotationZ, float autoRotationAngle, float autoRotationDirection, bool isCharging)
     {
-        return $"{{\"position.x\":{position.x},\"position.y\":{position.y},\"position.z\":{position.z},\"rotationZ\":{rotationZ},\"autoRotationAngle\":{autoRotationAngle}}}";
+        return $"{{\"position.x\":{position.x},\"position.y\":{position.y},\"position.z\":{position.z},\"rotationZ\":{rotationZ},\"autoRotationAngle\":{autoRotationAngle},\"autoRotationDirection\":{autoRotationDirection},\"isCharging\":{isCharging.ToString().ToLower()}}}";
     }
 
     /// <summary>

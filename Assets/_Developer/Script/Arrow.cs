@@ -169,6 +169,11 @@ public class Arrow : MonoBehaviour
 
     private void EnemyShoot()
     {
+        // Safety: prevent division by zero if angle is 0
+        if (Mathf.Approximately(enemyShootAngle, 0f))
+        {
+            enemyShootAngle = 61.5f; // fallback to baseShootAngle
+        }
 
         Vector3 pos = transform.position;
         Vector3 target = GameManager.instance.playerController.transform.position;
@@ -250,7 +255,7 @@ public class Arrow : MonoBehaviour
         if (hasHit)
         {
             Debug.Log($"RETURN FROM HIT !!!!!!!!!!!!!!");
-           // return;
+            return;
         }
 
         if (collision.CompareTag("Player") || collision.CompareTag("Opponent"))

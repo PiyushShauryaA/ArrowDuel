@@ -259,12 +259,12 @@ public class ScoreManager : MonoBehaviour
     {
         // Check if we're player 1 (host)
         bool isPlayer1 = true;
-        if (GameManager.gameMode == GameModeType.MULTIPLAYER && NakamaClient.Instance != null && NakamaClient.Instance.CurrentMatch != null)
+        if (GameManager.gameMode == GameModeType.MULTIPLAYER && ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
         {
-            var presences = NakamaClient.Instance.CurrentMatch.Presences;
+            var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
             var sortedPresences = presences.ToList();
             sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-            isPlayer1 = sortedPresences.Count > 0 && sortedPresences[0].UserId == NakamaClient.Instance.UserId;
+            isPlayer1 = sortedPresences.Count > 0 && sortedPresences[0].UserId == ArrowduelNakamaClient.Instance.Session?.UserId;
         }
         if (isPlayer1)
             GameManager.instance.playerController.SetGameCompleted();
@@ -291,12 +291,12 @@ public class ScoreManager : MonoBehaviour
 
         // Determine if we're player 1 (host) in multiplayer
         bool isPlayer1Local = true;
-        if (GameManager.gameMode == GameModeType.MULTIPLAYER && NakamaClient.Instance != null && NakamaClient.Instance.CurrentMatch != null)
+        if (GameManager.gameMode == GameModeType.MULTIPLAYER && ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
         {
-            var presences = NakamaClient.Instance.CurrentMatch.Presences;
+            var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
             var sortedPresences = presences.ToList();
             sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-            isPlayer1Local = sortedPresences.Count > 0 && sortedPresences[0].UserId == NakamaClient.Instance.UserId;
+            isPlayer1Local = sortedPresences.Count > 0 && sortedPresences[0].UserId == ArrowduelNakamaClient.Instance.Session?.UserId;
         }
         bool isMultiplayerMode = GameManager.gameMode == GameModeType.MULTIPLAYER;
 

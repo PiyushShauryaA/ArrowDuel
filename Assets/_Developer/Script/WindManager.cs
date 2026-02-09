@@ -59,7 +59,7 @@ public class WindManager : MonoBehaviour
             return;
 
         if (GameManager.gameMode == GameModeType.MULTIPLAYER && 
-            (NakamaNetworkManager.Instance != null && !NakamaNetworkManager.Instance.HasStateAuthorityGameData))
+            (ArrowduelNetworkManager.Instance != null && !ArrowduelNetworkManager.Instance.HasStateAuthorityGameData))
             return;
 
         if (currentTime > 0)
@@ -89,9 +89,9 @@ public class WindManager : MonoBehaviour
         }
         else
         {
-            if (NakamaNetworkManager.Instance != null)
+            if (ArrowduelNetworkManager.Instance != null)
             {
-                NakamaNetworkManager.Instance.Wind_RPC();
+                ArrowduelNetworkManager.Instance.Wind_RPC();
             }
         }
 
@@ -119,10 +119,10 @@ public class WindManager : MonoBehaviour
     {
         if (GameManager.gameMode == GameModeType.MULTIPLAYER)
         {
-            if (NakamaNetworkManager.Instance != null && NakamaNetworkManager.Instance.HasStateAuthorityGameData)
+            if (ArrowduelNetworkManager.Instance != null && ArrowduelNetworkManager.Instance.HasStateAuthorityGameData)
             {
-                NakamaNetworkManager.Instance.isWindActive = false;
-                NakamaNetworkManager.Instance.windForce = Vector2.zero;
+                ArrowduelNetworkManager.Instance.isWindActive = false;
+                ArrowduelNetworkManager.Instance.windForce = Vector2.zero;
             }
         }
             

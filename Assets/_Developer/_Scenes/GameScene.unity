@@ -10731,7 +10731,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 6.82968
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -52671,7 +52671,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TestLevel: 0
-  testLevel: 2
+  testLevel: 1
   fadeLevelTransitionPanel: {fileID: 654505447}
   currentLevelIndex: 0
   lastLevelIndex: 0
@@ -52685,20 +52685,20 @@ MonoBehaviour:
     player2Spawn: {fileID: 1689180923}
   - levelName: Level_02
     levelObject: {fileID: 1913626578}
-    player1Spawn: {fileID: 1866874174}
-    player2Spawn: {fileID: 1779665692}
+    player1Spawn: {fileID: 1680553267}
+    player2Spawn: {fileID: 1689180923}
   - levelName: Level_03
     levelObject: {fileID: 721211106}
-    player1Spawn: {fileID: 1788383197}
-    player2Spawn: {fileID: 549904560}
+    player1Spawn: {fileID: 1680553267}
+    player2Spawn: {fileID: 1689180923}
   - levelName: Level_04
     levelObject: {fileID: 2102669303}
-    player1Spawn: {fileID: 578926519}
-    player2Spawn: {fileID: 406876304}
+    player1Spawn: {fileID: 1680553267}
+    player2Spawn: {fileID: 1689180923}
   - levelName: Level_05
     levelObject: {fileID: 1332244247}
-    player1Spawn: {fileID: 1597714407}
-    player2Spawn: {fileID: 372129255}
+    player1Spawn: {fileID: 1680553267}
+    player2Spawn: {fileID: 1689180923}
   availableThemes:
   - {fileID: 650814795}
   - {fileID: 576422203}

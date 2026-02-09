@@ -388,7 +388,7 @@ MonoBehaviour:
   colliders:
   - {fileID: 7739946391310859536}
   audioSource: {fileID: 4518853750480858083}
-  hasHit: 1
+  hasHit: 0
   enemyShootAngle: 0
   isReturningArrow: 0
   returnDelay: 0.3

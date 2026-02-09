@@ -29,7 +29,26 @@ public class PlayerNetworkLocalSync : MonoBehaviour
     private float lastCurrentForce;
     private bool inputChanged;
 
+    private bool initialized = false;
+
     private void Start()
+    {
+        TryInitialize();
+    }
+
+    private void OnEnable()
+    {
+        // Re-initialize when re-enabled (e.g. GameManager re-enables after Start() failed)
+        if (!initialized)
+        {
+            TryInitialize();
+        }
+    }
+
+    /// <summary>
+    /// Attempts to find BowController and initialize. Can be called from Start() or OnEnable().
+    /// </summary>
+    private void TryInitialize()
     {
         // CRITICAL: Don't attach this component to arrows - only to player GameObjects
         if (GetComponent<Arrow>() != null)
@@ -118,11 +137,13 @@ public class PlayerNetworkLocalSync : MonoBehaviour
         
         if (bowController == null)
         {
-            Debug.Log($"[PlayerNetworkLocalSync] BowController component not found on GameObject: {gameObject.name}!");
-           enabled = false;
-            return;
+            Debug.Log($"[PlayerNetworkLocalSync] BowController component not found on GameObject: {gameObject.name}! Will retry on re-enable.");
+            return; // Don't disable — let OnEnable retry when GameManager re-enables
         }
         
+        // Mark as initialized so we don't re-init unnecessarily
+        initialized = true;
+
         // Debug log to verify controller was found
         Debug.Log($"[LocalSync] Start - Found BowController: {bowController.GetType().Name}, " +
             $"playerID: {bowController.playerID}, " +
@@ -134,12 +155,10 @@ public class PlayerNetworkLocalSync : MonoBehaviour
         if (bowController.bowParent != null)
         {
             bowTransform = bowController.bowParent;
-            //Debug.Log($"[PlayerNetworkLocalSync] Using bowParent transform for rotation sync: {bowTransform.name}");
         }
         else
         {
             bowTransform = bowController.transform;
-            //Debug.Log($"[PlayerNetworkLocalSync] Using BowController root transform (bowParent is null): {bowTransform.name}");
         }
         
         // Initialize input tracking
@@ -171,6 +190,10 @@ public class PlayerNetworkLocalSync : MonoBehaviour
 
     private void LateUpdate()
     {
+        // Don't run if not initialized yet (BowController not found)
+        if (!initialized || bowController == null || bowTransform == null)
+            return;
+
         // Only sync in multiplayer mode
         if (GameManager.gameMode != GameModeType.MULTIPLAYER)
             return;
@@ -260,15 +283,19 @@ public class PlayerNetworkLocalSync : MonoBehaviour
             return;
 
         var matchId = ArrowduelNakamaClient.Instance.CurrentMatch.Id;
-        
-        // Send current position and rotation
-        // Note: When charging, rotation should be frozen locally, so we send the frozen rotation value
-        // The remote player will ignore rotation updates when rotationEnabled = false
+
+        // Fix: Send root transform position, not bowParent position
+        Transform posTransform = (bowTransform == bowController.bowParent)
+            ? bowController.transform
+            : bowTransform;
+
         var json = MatchDataJson.PositionAndRotation(
-            bowTransform.position,
-            bowTransform.rotation.eulerAngles.z,
-            bowController.currentAutoRotationAngle
-        );
+     posTransform.position,
+     bowTransform.rotation.eulerAngles.z,
+     bowController.currentAutoRotationAngle,
+     bowController.autoRotationDirection,
+     bowController.isCharging
+ );
 
         // Debug log for rotation sync testing
         /*Debug.Log($"[LocalSync] Sending - playerID: {bowController.playerID}, " +

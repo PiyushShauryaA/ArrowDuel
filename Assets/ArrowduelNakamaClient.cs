@@ -315,39 +315,60 @@ public class ArrowduelNakamaClient : MonoBehaviour
     /// Host has authority over game state (replaces State Authority from Photon Fusion).
     /// </summary>
     public void UpdateHostStatus()
-   {
-       if (currentMatch == null || session == null)
-       {
-           IsHost = false;
-           return;
-       }
+    {
+        if (session == null)
+        {
+            IsHost = false;
+            return;
+        }
 
-       var allPlayers = new List<IUserPresence>(currentMatch.Presences);
-       string currentUserId = session.UserId;
+        string currentUserId = session.UserId;
 
-       // Check if self is already in presences (should be, but check anyway)
-       bool selfInPresences = allPlayers.Any(p => p.UserId == currentUserId);
+        // PRIMARY: Use matchmaker data (most reliable - contains ALL matched players)
+        if (lastMatchedData?.Users != null && lastMatchedData.Users.Any())
+        {
+            var sortedUserIds = lastMatchedData.Users
+                .Select(u => u.Presence.UserId)
+                .OrderBy(id => id)
+                .ToList();
 
-       // If self is not in presences, we need to include it for sorting
-       // But we can't create UserPresence directly, so we'll just use the presences
-       // and compare UserIds directly
-       if (!selfInPresences && allPlayers.Count > 0)
-       {
-           // Self is not in presences, but we have other players
-           // Compare our UserId with the first player's UserId
-           var sortedPresences = allPlayers.OrderBy(p => p.UserId).ToList();
-           IsHost = sortedPresences.Count > 0 && string.Compare(currentUserId, sortedPresences[0].UserId) < 0;
-       }
-       else
-       {
-           // Self is in presences, or we're the only player
-           var sortedPresences = allPlayers.OrderBy(p => p.UserId).ToList();
-           IsHost = sortedPresences.Count > 0 && sortedPresences[0].UserId == currentUserId;
-       }
+            IsHost = sortedUserIds.Count > 0 && sortedUserIds[0] == currentUserId;
+            Debug.Log($"[ArrowduelNakamaClient] Host status (from matchmaker): IsHost={IsHost}, currentUserId={currentUserId}, firstSorted={sortedUserIds[0]}, totalPlayers={sortedUserIds.Count}");
+            return;
+        }
 
-       //Debug.Log(
-           //$"[ArrowduelNakamaClient] Host status updated: IsHost={IsHost}, TotalPlayers={allPlayers.Count + (selfInPresences ? 0 : 1)}");
-   }
+        // FALLBACK: Use current match presences (may be stale)
+        if (currentMatch == null)
+        {
+            IsHost = false;
+            return;
+        }
+
+        var allPlayers = new List<IUserPresence>(currentMatch.Presences);
+
+        if (allPlayers.Count == 0)
+        {
+            // No other players visible yet - assume host (first to join)
+            IsHost = true;
+            Debug.Log($"[ArrowduelNakamaClient] Host status (no presences): IsHost=true (assumed first joiner)");
+            return;
+        }
+
+        bool selfInPresences = allPlayers.Any(p => p.UserId == currentUserId);
+
+        if (!selfInPresences)
+        {
+            var sortedPresences = allPlayers.OrderBy(p => p.UserId).ToList();
+            IsHost = string.Compare(currentUserId, sortedPresences[0].UserId) < 0;
+        }
+        else
+        {
+            var sortedPresences = allPlayers.OrderBy(p => p.UserId).ToList();
+            IsHost = sortedPresences[0].UserId == currentUserId;
+        }
+
+        Debug.Log($"[ArrowduelNakamaClient] Host status (from presences): IsHost={IsHost}, totalPresences={allPlayers.Count}");
+    }
 
     private void EnsureClient()
     {

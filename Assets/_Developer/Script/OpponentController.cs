@@ -95,34 +95,19 @@ public class OpponentController : BowController
 
         if (GameManager.gameMode == GameModeType.MULTIPLAYER)
         {
-            // Check if this is a remote player (has PlayerNetworkRemoteSync but NOT PlayerNetworkLocalSync)
-            // Remote players get rotation from network, not local AutoRotate
-            
-            //Debug.Log($"hasRemoteSync: {hasRemoteSync}, hasLocalSync: {hasLocalSync}");
-            if (hasRemoteSync && !hasLocalSync)
+            // Remote players are fully controlled by PlayerNetworkRemoteSync — skip all local input/rotation
+            if (isRemotePlayer)
             {
-                // This is a remote player - rotation is handled by PlayerNetworkRemoteSync
-                // Don't call UpdatePlayerBehavior() as it would call AutoRotate()
                 return;
             }
 
-            // Determine if we're player 2 (non-host) - Player 2 controls right player (playerID == 1)
+            // Only the non-host controls the right player (playerID == 1)
             bool isPlayer2 = ArrowduelNakamaClient.Instance != null && !ArrowduelNakamaClient.Instance.IsHost;
-
-            // Player 2 (non-host) controls right player (playerID == 1)
-            // Only process input if this is NOT an AI game
-            if (isPlayer2 && playerID == 1 )
+            if (isPlayer2 && playerID == 1)
             {
-                HandleInput();
-                UpdatePlayerBehavior(); // Critical: Enable bow rotation and force meter updates for Player 2
-            }
-            else if (hasLocalSync && playerID == 1 )
-            {
-                // Fallback: If we have local sync and this is player 2, allow input
-                // This ensures input works even if network checks fail
                 HandleInput();
                 UpdatePlayerBehavior();
-            } 
+            }
         }
         else 
         {
@@ -283,10 +268,21 @@ public class OpponentController : BowController
         float finalShootAngle = willHit ? baseShootAngle : baseShootAngle + Random.Range(-5f, 5f);
 
         // //Debug.Log($"ENEMY - FinalShootAngle: {finalShootAngle} | willHit: {willHit} | counter: {arrowHitCounter}");
-        if (gameManager.hasAutoPlay == false)
-            AiReleaseArrow(finalShootAngle);
-        else
-            ReleaseArrow();
+        if (GameManager.gameMode == GameModeType.SINGLEPLAYER)
+        {
+            if (gameManager.hasAutoPlay == false)
+                AiReleaseArrow(finalShootAngle);
+            else
+                AiReleaseArrow(finalShootAngle);
+        }
+        else if (GameManager.gameMode == GameModeType.MULTIPLAYER)
+        {
+            if (gameManager.hasAutoPlay == false)
+                AiReleaseArrow(finalShootAngle);
+            else
+                ReleaseArrow();
+
+        }
     }
 
     #endregion

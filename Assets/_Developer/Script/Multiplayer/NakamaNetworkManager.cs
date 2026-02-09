@@ -123,9 +123,11 @@ public class NakamaNetworkManager : MonoBehaviour
         if (HasStateAuthorityGameData && LevelManager.instance != null)
         {
             lastLevelIndex = currentLevelIndex;
-            currentLevelIndex = UnityEngine.Random.Range(0, LevelManager.instance.availableLevelIndices.Count);
+            //currentLevelIndex = UnityEngine.Random.Range(0, LevelManager.instance.availableLevelIndices.Count);
+            currentLevelIndex = 0;
             lastThemeIndex = currentThemeIndex;
-            currentThemeIndex = UnityEngine.Random.Range(0, LevelManager.instance.availableThemeIndices.Count);
+            //currentThemeIndex = UnityEngine.Random.Range(0, LevelManager.instance.availableThemeIndices.Count);
+            currentThemeIndex = 0;
 
             var data = new LevelChangeData
             {
