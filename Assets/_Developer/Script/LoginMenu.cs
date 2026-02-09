@@ -163,6 +163,7 @@ public class LoginMenu : MonoBehaviour
 
         // Store in static class for access in game
         PlayerData.playerName = playerName;
+        ArrowduelConnectionManager.Instance.playerName = playerName;
 
         // Hide error if validation passed
         if (errorText != null)

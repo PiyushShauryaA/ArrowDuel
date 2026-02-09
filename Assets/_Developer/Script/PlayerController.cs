@@ -6,18 +6,14 @@ public class PlayerController : BowController
 {
     private void Start()
     {
+        hasRemoteSync = GetComponent<PlayerNetworkRemoteSync>() != null;
+        hasLocalSync = GetComponent<PlayerNetworkLocalSync>() != null;
         // Set controller reference for multiplayer
         if (GameManager.gameMode == GameModeType.MULTIPLAYER)
         {
             // Determine if we're player 1 (host)
-            bool isPlayer1 = false;
-            if (ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
-            {
-                var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
-                var sortedPresences = presences.ToList();
-                sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-                isPlayer1 = sortedPresences.Count > 0 && sortedPresences[0].UserId == ArrowduelNakamaClient.Instance.Session?.UserId;
-            }
+            // NAYA (lagao):
+            bool isPlayer1 = ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.IsHost;
 
             if (!isPlayer1)
             {
@@ -39,8 +35,7 @@ public class PlayerController : BowController
         {
             // Check if this is a remote player (has PlayerNetworkRemoteSync but NOT PlayerNetworkLocalSync)
             // Remote players get rotation from network, not local AutoRotate
-            hasRemoteSync = GetComponent<PlayerNetworkRemoteSync>() != null;
-            hasLocalSync = GetComponent<PlayerNetworkLocalSync>() != null;
+            
             //Debug.Log($"hasRemoteSync: {hasRemoteSync}, hasLocalSync: {hasLocalSync}");
             if (hasRemoteSync && !hasLocalSync)
             {
@@ -54,6 +49,18 @@ public class PlayerController : BowController
             // Determine if we're player 1 (host) - only host handles input in multiplayer
             bool isPlayer1 = ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.IsHost;
             //Debug.Log($"isPlayer1: {isPlayer1}");
+            // Use the same UserId-based logic from SpawnPlayerNakama:
+                // bool isPlayer1 = false;
+                // if (ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
+                // {
+                //     var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
+                //     var allUserIds = presences.Select(p => p.UserId).ToList();
+                //     string currentUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
+                //     if (!string.IsNullOrEmpty(currentUserId) && !allUserIds.Contains(currentUserId))
+                //         allUserIds.Add(currentUserId);
+                //     allUserIds.Sort();
+                //     isPlayer1 = allUserIds.Count > 0 && allUserIds[0] == currentUserId;
+                // }
 
             // Player 1 (host) controls left player (playerID == 0)
             // Player 2 (non-host) controls right player (playerID == 1)
@@ -71,7 +78,7 @@ public class PlayerController : BowController
                 // This ensures rotation works even if network checks fail
                 HandleInput();
                 UpdatePlayerBehavior();
-            }
+            } 
             
         }
         else

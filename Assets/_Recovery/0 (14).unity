@@ -149,12 +149,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   connectButton: {fileID: 328590505}
-  playerName: 
   statusText: {fileID: 615652024}
   usernameInput: {fileID: 883267938}
   serverScheme: http
-  serverHost: 44.220.252.34
-  serverPort: 7350
+  serverHost: 127.0.0.1
+  serverPort: 7351
   serverKey: defaultkey
   useSSL: 0
   matchmakingTimeout: 45
@@ -285,7 +284,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: AI Game
+  m_text: AI
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -400,8 +399,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -270, y: -118}
-  m_SizeDelta: {x: 393.26, y: 78.146}
+  m_AnchoredPosition: {x: -232, y: -142}
+  m_SizeDelta: {x: 200, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &328590505
 MonoBehaviour:
@@ -705,7 +704,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60.85
+  m_fontSize: 45.7
   m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1770,8 +1769,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -274.55347, y: 85}
-  m_SizeDelta: {x: 393.2611, y: 81.0173}
+  m_AnchoredPosition: {x: -250, y: 0}
+  m_SizeDelta: {x: 344.1541, y: 64.0838}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &883267938
 MonoBehaviour:
@@ -2002,8 +2001,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 281, y: 85}
-  m_SizeDelta: {x: 395.61, y: 81.018}
+  m_AnchoredPosition: {x: 253.5852, y: 35.82953}
+  m_SizeDelta: {x: 283.063, y: 51.6591}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1135853600
 MonoBehaviour:
@@ -2352,8 +2351,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 277.65, y: -122}
-  m_SizeDelta: {x: 388.9086, y: 80}
+  m_AnchoredPosition: {x: 273, y: -142}
+  m_SizeDelta: {x: 200, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1340585665
 MonoBehaviour:
@@ -2542,7 +2541,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 54.2
+  m_fontSize: 45.7
   m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -2789,7 +2788,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60.85
+  m_fontSize: 34.6
   m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -2925,7 +2924,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 69.9
+  m_fontSize: 56.95
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1

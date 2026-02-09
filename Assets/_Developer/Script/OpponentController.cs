@@ -60,7 +60,8 @@ public class OpponentController : BowController
     {
         base.Start();
         gameManager = GameManager.instance;
-
+        hasRemoteSync = GetComponent<PlayerNetworkRemoteSync>() != null;
+        hasLocalSync = GetComponent<PlayerNetworkLocalSync>() != null;
         // Set controller reference for multiplayer (if not host)
         if (GameManager.gameMode == GameModeType.MULTIPLAYER)
         {
@@ -96,8 +97,7 @@ public class OpponentController : BowController
         {
             // Check if this is a remote player (has PlayerNetworkRemoteSync but NOT PlayerNetworkLocalSync)
             // Remote players get rotation from network, not local AutoRotate
-            hasRemoteSync = GetComponent<PlayerNetworkRemoteSync>() != null;
-            hasLocalSync = GetComponent<PlayerNetworkLocalSync>() != null;
+            
             //Debug.Log($"hasRemoteSync: {hasRemoteSync}, hasLocalSync: {hasLocalSync}");
             if (hasRemoteSync && !hasLocalSync)
             {
@@ -122,7 +122,7 @@ public class OpponentController : BowController
                 // This ensures input works even if network checks fail
                 HandleInput();
                 UpdatePlayerBehavior();
-            }
+            } 
         }
         else 
         {
@@ -147,6 +147,10 @@ public class OpponentController : BowController
             {
                 UpdateForceMeter();
             }
+        }
+        else
+        {
+            Debug.LogWarning($"[PlayerController] UpdatePlayerBehavior called but playerType is {playerType}, not Player. playerID: {playerID}");
         }
     }
 

@@ -8,7 +8,6 @@ public class BowController : MonoBehaviour
 {
 
     public int playerIndex = -1;
-    public bool isCharging = false;
 
     public int playerID = -1;
     public string playerTag;
@@ -32,6 +31,7 @@ public class BowController : MonoBehaviour
     [Header("Rotation Settings")]
     public float autoRotationSpeed = 45f; // Degrees per second
     public float manualRotationSpeed = 10f;
+    
     public float rotationOffset = 90f;
     public float maxUpAngle = 90f;
     public float maxDownAngle = -90f;
@@ -56,13 +56,13 @@ public class BowController : MonoBehaviour
     public Transform arrowSpawnPoint;
     public GameObject heartBreakEffect;
 
-    
+    public bool isCharging = false;
     public float currentForce = 0f;
     public int fillDirection = 1; // 1 for increasing, -1 for decreasing
 
     [Header("Auto Rotation")]
     // [SerializeField] private bool autoRotate = true;
-    [SerializeField] private float autoRotationDirection = 1f; // 1 for down, -1 for up
+    public float autoRotationDirection = 1f; // 1 for down, -1 for up
 
     private void Awake()
     {
@@ -78,7 +78,6 @@ public class BowController : MonoBehaviour
         currentAutoRotationAngle = maxUpAngle;
         fillbarParentObj.SetActive(false);
         fillbarImage.fillAmount = 0f;
-        GameManager.instance.loadingPanel.SetActive(false);
 
     }
 
@@ -146,17 +145,15 @@ public class BowController : MonoBehaviour
         fillDirection = 1;
         fillbarParentObj.gameObject.SetActive(true);
         fillbarImage.fillAmount = 0f;
-        
+
         // Send rotation stop event to network in multiplayer
         if (GameManager.gameMode == GameModeType.MULTIPLAYER && ArrowduelNetworkManager.Instance != null)
         {
-            var rotationStopData = new ArrowduelNetworkManager.NewRotationControlData
+            var rotationStopData = new ArrowduelNetworkManager.RotationControlData
             {
-                playerID = playerID,
-                rotatedAngle = (int)currentAutoRotationAngle
+                playerID = playerID
             };
             string json = JsonUtility.ToJson(rotationStopData);
-            Debug.Log($"[BowController] 🔍 Before sending rotation STOP event - playerID: {playerID}, json: {json}");
             ArrowduelNetworkManager.Instance.SendMatchState(ArrowduelNetworkManager.OPCODE_ROTATION_STOP, json);
             Debug.Log($"[BowController] ✅ Sent rotation STOP event to network - playerID: {playerID}, json: {json}");
         }
@@ -193,8 +190,8 @@ public class BowController : MonoBehaviour
         // Debug log every 60 frames (approximately once per second)
         if (Time.frameCount % 60 == 0)
         {
-           // Debug.Log(
-              //  $"[BowController] AutoRotate - playerID: {playerID},  isCharging: {isCharging}");
+            // Debug.Log(
+            //  $"[BowController] AutoRotate - playerID: {playerID},  isCharging: {isCharging}");
         }
         if (currentAutoRotationAngle >= maxUpAngle)
         {
@@ -233,7 +230,7 @@ public class BowController : MonoBehaviour
             Debug.LogWarning($"[BowController] ReleaseArrow called but player is not charging! playerID: {playerID}");
             return;
         }
-        
+
         if (GameManager.instance.hasAutoPlay)
             currentForce = 0.5f;
 
@@ -332,29 +329,16 @@ public class BowController : MonoBehaviour
 
     }
 
-        private void SpawnArrowNetwork(GameObject _prefab, float shootForce)
+    private void SpawnArrowNetwork(GameObject _prefab, float shootForce)
     {
-        // CRITICAL: Add comprehensive debugging to identify controller instance and playerID
-        string controllerType = this.GetType().Name;
-        bool isPlayerController = this is PlayerController;
-        bool isOpponentController = this is OpponentController;
-        
-        Debug.Log($"[BowController] 🔍 SpawnArrowNetwork called - Controller Type: {controllerType}, IsPlayerController: {isPlayerController}, IsOpponentController: {isOpponentController}, playerID: {playerID}, GameObject: {gameObject.name}");
-        
-        // Verify playerID is set correctly
-        if (playerID == -1)
-        {
-            Debug.LogError($"[BowController] ❌ CRITICAL ERROR: playerID is -1 (not set)! Controller Type: {controllerType}, GameObject: {gameObject.name}");
-        }
-        
         Debug.Log($"[BowController---->>>>>>>>>>>  ] 📤📤 Spawning arrow network: {_prefab.name}, force: {shootForce}, playerID: {playerID}");
-        
+
         // Verify correct prefab is being used
         if (_prefab != arrowPrefab && playerPowerUp.playerPowerUpType != PowerUpType.Bomb)
         {
             Debug.LogWarning($"[BowController] ⚠️ Using different prefab! Expected: {(arrowPrefab != null ? arrowPrefab.name : "NULL")}, Using: {_prefab.name}");
         }
-        
+
         // Spawn arrow locally
         var arrowObj = Instantiate(_prefab, arrowSpawnPoint.position, arrowSpawnPoint.rotation);
 
@@ -364,7 +348,7 @@ public class BowController : MonoBehaviour
         // positioned and rotated for each player's bow, so we don't need to negate for playerID 1
         //Vector2 shootDirection = arrowSpawnPoint.right;
         Vector2 shootDirection = playerID == 0 ? arrowSpawnPoint.right : -arrowSpawnPoint.right;
-        
+
         // Debug log for direction calculation
         float rotationZ = arrowSpawnPoint.rotation.eulerAngles.z;
         Debug.Log($"[BowController] 🎯 Arrow spawn direction - playerID: {playerID}, rotationZ: {rotationZ}°, shootDirection: {shootDirection}, arrowSpawnPoint.right: {arrowSpawnPoint.right}");
@@ -382,10 +366,9 @@ public class BowController : MonoBehaviour
         // Send rotation start event to network (rotation resumes after arrow spawns)
         if (GameManager.gameMode == GameModeType.MULTIPLAYER && ArrowduelNetworkManager.Instance != null)
         {
-            var rotationStartData = new ArrowduelNetworkManager.NewRotationControlData
+            var rotationStartData = new ArrowduelNetworkManager.RotationControlData
             {
-                playerID = playerID,
-                rotatedAngle = (int)currentAutoRotationAngle
+                playerID = playerID
             };
             string rotationJson = JsonUtility.ToJson(rotationStartData);
             ArrowduelNetworkManager.Instance.SendMatchState(ArrowduelNetworkManager.OPCODE_ROTATION_START, rotationJson);
@@ -395,13 +378,9 @@ public class BowController : MonoBehaviour
         // Send arrow spawn data to network for remote clients
         if (GameManager.gameMode == GameModeType.MULTIPLAYER && ArrowduelNetworkManager.Instance != null)
         {
-                
-                // CRITICAL: Double-check playerID before sending
-                Debug.Log($"[BowController] 🔍 Before sending arrow spawn - playerID: {playerID}, Controller Type: {controllerType}, GameObject: {gameObject.name}");
-            
             var arrowSpawnData = new ArrowduelNetworkManager.ArrowSpawnData
             {
-                playerID = playerID,  // Make sure this is the correct playerID
+                playerID = playerID,
                 positionX = arrowSpawnPoint.position.x,
                 positionY = arrowSpawnPoint.position.y,
                 positionZ = arrowSpawnPoint.position.z,
@@ -413,7 +392,6 @@ public class BowController : MonoBehaviour
 
             string json = JsonUtility.ToJson(arrowSpawnData);
             Debug.Log($"[BowController---->>>>>>>>>>>  ] 📤 Sending arrow spawn data: {json}");
-            Debug.Log($"[BowController] 🔍 ArrowSpawnData.playerID = {arrowSpawnData.playerID}, this.playerID = {this.playerID}");
             ArrowduelNetworkManager.Instance.SendMatchState(ArrowduelNetworkManager.OPCODE_ARROW_SPAWN, json);
             Debug.Log($"[BowController] 📤 Sent arrow spawn to network - playerID: {playerID}, force: {shootForce}, position: ({arrowSpawnPoint.position.x}, {arrowSpawnPoint.position.y}, {arrowSpawnPoint.position.z}), rotationZ: {arrowSpawnPoint.rotation.eulerAngles.z}");
         }

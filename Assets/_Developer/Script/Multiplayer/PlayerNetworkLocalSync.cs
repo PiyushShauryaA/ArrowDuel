@@ -118,10 +118,8 @@ public class PlayerNetworkLocalSync : MonoBehaviour
         
         if (bowController == null)
         {
-            Debug.LogError($"[PlayerNetworkLocalSync] BowController component not found on GameObject: {gameObject.name}!");
-            Debug.LogError($"[PlayerNetworkLocalSync] Available components: {string.Join(", ", GetComponents<MonoBehaviour>().Select(c => c.GetType().Name))}");
-            Debug.LogError($"[PlayerNetworkLocalSync] Searched parent hierarchy and root, but still not found. This component should be on the root player GameObject.");
-            enabled = false;
+            Debug.Log($"[PlayerNetworkLocalSync] BowController component not found on GameObject: {gameObject.name}!");
+           enabled = false;
             return;
         }
         

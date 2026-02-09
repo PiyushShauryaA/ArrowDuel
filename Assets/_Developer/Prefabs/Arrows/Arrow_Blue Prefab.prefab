@@ -387,6 +387,7 @@ MonoBehaviour:
   isPlayerArrow: 0
   colliders: []
   audioSource: {fileID: 1772724002434695420}
+  hasHit: 0
   enemyShootAngle: 0
   isReturningArrow: 0
   returnDelay: 0.3

@@ -453,11 +453,11 @@ public class ArrowduelNetworkManager : MonoBehaviour
 
             Debug.Log($"[ArrowduelNetworkManager] ⚡ Local player check - IsHost: {isHost}, data.playerID: {data.playerID}, isLocalPlayer: {isLocalPlayer}");
 
-            //if (isLocalPlayer)
-            // {
-            //     Debug.Log($"[ArrowduelNetworkManager] ⏭️ Skipping arrow spawn - this is from local player (playerID: {data.playerID}), arrow already spawned locally");
-            //     return;
-            // }
+            if (isLocalPlayer)
+            {
+                Debug.Log($"[ArrowduelNetworkManager] ⏭️ Skipping arrow spawn - this is from local player (playerID: {data.playerID}), arrow already spawned locally");
+                return;
+            }
         }
         else
         {

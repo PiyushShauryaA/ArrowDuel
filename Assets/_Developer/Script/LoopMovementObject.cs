@@ -75,7 +75,7 @@ public class LoopMovementObject : MonoBehaviour
         else
             initPosition = transform.position;
 
-        if (GameManager.gameMode == GameModeType.SINGLEPLAYER && isBird)
+        if (GameManager.gameMode == GameModeType.MULTIPLAYER && isBird)
         {
             StartCoroutine(DelayMoveStart());
         }
@@ -111,22 +111,11 @@ public class LoopMovementObject : MonoBehaviour
     private void Awake()
     {
         // Initialize for multiplayer - check if we have authority (host)
-        if (GameManager.gameMode == GameModeType.MULTIPLAYER && isBird)
-        {
-            bool hasAuthority = false;
-            if (NakamaClient.Instance != null && NakamaClient.Instance.CurrentMatch != null)
-            {
-                var presences = NakamaClient.Instance.CurrentMatch.Presences;
-                var sortedPresences = presences.ToList();
-                sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-                hasAuthority = sortedPresences.Count > 0 && sortedPresences[0].UserId == NakamaClient.Instance.UserId;
-            }
-
-            if (hasAuthority)
-            {
-                Invoke(nameof(DelayCheck), delayMoveStart);
-            }
-        }
+      
+    }
+    public void SetDirection(Vector3 dir)
+    {
+        direction = dir;
     }
 
     private void FixedUpdate()
@@ -136,21 +125,10 @@ public class LoopMovementObject : MonoBehaviour
             if (GameManager.instance.gameState != GameState.Gameplay && GameManager.instance.gameState != GameState.WaitForLevelChange)
                 return;
 
-            // Check if we have authority (host)
-            bool hasAuthority = false;
-            if (NakamaClient.Instance != null && NakamaClient.Instance.CurrentMatch != null)
-            {
-                var presences = NakamaClient.Instance.CurrentMatch.Presences;
-                var sortedPresences = presences.ToList();
-                sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-                hasAuthority = sortedPresences.Count > 0 && sortedPresences[0].UserId == NakamaClient.Instance.UserId;
-            }
-
-            if (!hasAuthority) return;
+            // No authority check - birds are spawned locally by BirdManager
 
             if (isBird == true && Vector3.Distance(transform.position, initPosition) < 1f && _sprite.enabled == false && canMove == false)
             {
-                //Debug.Log($"RESET TO START POSITION.... ...!");
                 ActiveBird_RPC();
             }
 
@@ -293,6 +271,7 @@ public class LoopMovementObject : MonoBehaviour
 
     public void OnBirdHitDetect_RPC()
     {
+        Debug.Log("OnBirdHitDetect_RPC---");
        // Invoke(nameof(OnHitDetect), .05f);
         OnHitDetect();
 
@@ -300,6 +279,7 @@ public class LoopMovementObject : MonoBehaviour
 
     public void OnHitDetect()
     {
+        Debug.Log("    OnHitDetect ");
         hasHurt = true;
         canMove = false;
         anim.enabled = false;

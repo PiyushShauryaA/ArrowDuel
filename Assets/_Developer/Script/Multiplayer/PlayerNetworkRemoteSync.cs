@@ -39,25 +39,25 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         // CRITICAL: Don't attach this component to arrows - only to player GameObjects
         if (GetComponent<Arrow>() != null)
         {
-            Debug.LogWarning(
-                $"[PlayerNetworkRemoteSync] This component should not be on Arrow GameObject: {gameObject.name}. Removing component.");
+            //Debug.LogWarning(
+               // $"[PlayerNetworkRemoteSync] This component should not be on Arrow GameObject: {gameObject.name}. Removing component.");
             DestroyImmediate(this);
             return;
         }
 
         // CRITICAL: Only allow this component on root GameObject or GameObject with BowController
         // If BowController is on a child, this component should be on the root, not the child
-        bool hasBowControllerOnSelf = GetComponent<PlayerController>() != null || 
-                                      GetComponent<OpponentController>() != null || 
+        bool hasBowControllerOnSelf = GetComponent<PlayerController>() != null ||
+                                      GetComponent<OpponentController>() != null ||
                                       GetComponent<BowController>() != null;
-        
+
         // If this is a child object (has parent) and doesn't have BowController, destroy it IMMEDIATELY
         // The component should only be on the root GameObject
         if (transform.parent != null && !hasBowControllerOnSelf)
         {
-            Debug.LogWarning(
-                $"[PlayerNetworkRemoteSync] Component found on child GameObject '{gameObject.name}' without BowController. " +
-                $"This component should only be on the root player GameObject. Removing from child IMMEDIATELY.");
+            //Debug.LogWarning(
+               // $"[PlayerNetworkRemoteSync] Component found on child GameObject '{gameObject.name}' without BowController. " +
+               // $"This component should only be on the root player GameObject. Removing from child IMMEDIATELY.");
             DestroyImmediate(this);
             return; // Don't access 'this' after DestroyImmediate
         }
@@ -146,40 +146,40 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         {
             Debug.LogError(
                 $"[PlayerNetworkRemoteSync] BowController component not found on GameObject: {gameObject.name}!");
-            Debug.LogError(
-                $"[PlayerNetworkRemoteSync] Available components: {string.Join(", ", GetComponents<MonoBehaviour>().Select(c => c.GetType().Name))}");
-            Debug.LogError(
-                $"[PlayerNetworkRemoteSync] Searched parent hierarchy and root, but still not found. This component should be on the root player GameObject.");
+           // Debug.LogError(
+            //    $"[PlayerNetworkRemoteSync] Available components: {string.Join(", ", GetComponents<MonoBehaviour>().Select(c => c.GetType().Name))}");
+            //Debug.LogError(
+            //    $"[PlayerNetworkRemoteSync] Searched parent hierarchy and root, but still not found. This component should be on the root player GameObject.");
             enabled = false;
             return;
         }
-        
+
         // CRITICAL: Verify this component is on the same GameObject as BowController or its parent
         // If BowController is on a child, this component should be on the root, not the child
         // If BowController is on a parent, that's OK - component can be on child
         // But if BowController is on a sibling or unrelated object, that's wrong
-        if (bowController.transform != transform && 
-            !bowController.transform.IsChildOf(transform) && 
+        if (bowController.transform != transform &&
+            !bowController.transform.IsChildOf(transform) &&
             !transform.IsChildOf(bowController.transform))
         {
             // BowController is neither on this GameObject, nor a child, nor a parent
             // This means they're siblings or unrelated - this is wrong
-            Debug.LogWarning(
-                $"[PlayerNetworkRemoteSync] BowController found on unrelated GameObject '{bowController.transform.name}' " +
-                $"but component is on '{gameObject.name}'. Component should be on the same GameObject as BowController. " +
-                $"Removing from '{gameObject.name}'.");
+            //Debug.LogWarning(
+               // $"[PlayerNetworkRemoteSync] BowController found on unrelated GameObject '{bowController.transform.name}' " +
+               // $"but component is on '{gameObject.name}'. Component should be on the same GameObject as BowController. " +
+               // $"Removing from '{gameObject.name}'.");
             Destroy(this);
             return;
         }
-        
+
         // If BowController is on a child GameObject, log a warning but allow it
         // (component should ideally be on same GameObject, but parent is acceptable)
         if (bowController.transform != transform && bowController.transform.IsChildOf(transform))
         {
-            Debug.LogWarning(
-                $"[PlayerNetworkRemoteSync] BowController found on child '{bowController.transform.name}' " +
-                $"but component is on parent '{gameObject.name}'. " +
-                $"Consider moving component to '{bowController.transform.name}' for better performance.");
+            //Debug.LogWarning(
+               // $"[PlayerNetworkRemoteSync] BowController found on child '{bowController.transform.name}' " +
+               // $"but component is on parent '{gameObject.name}'. " +
+               // $"Consider moving component to '{bowController.transform.name}' for better performance.");
         }
 
         // Use bowParent for rotation if available (the actual rotating transform),
@@ -187,12 +187,12 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         if (bowController.bowParent != null)
         {
             bowTransform = bowController.bowParent;
-            Debug.Log($"[PlayerNetworkRemoteSync] Using bowParent transform for rotation sync: {bowTransform.name}");
+            //Debug.Log($"[PlayerNetworkRemoteSync] Using bowParent transform for rotation sync: {bowTransform.name}");
         }
         else
         {
             bowTransform = transform;
-            Debug.Log($"[PlayerNetworkRemoteSync] Using root transform (bowParent is null): {bowTransform.name}");
+            //Debug.Log($"[PlayerNetworkRemoteSync] Using root transform (bowParent is null): {bowTransform.name}");
         }
 
         // Initialize rotation as enabled
@@ -205,7 +205,7 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         if (bowController.currentAutoRotationAngle == 0f)
         {
             bowController.currentAutoRotationAngle = bowController.maxUpAngle;
-            Debug.Log($"[RemoteSync] Initialized currentAutoRotationAngle to maxUpAngle: {bowController.maxUpAngle}");
+           // Debug.Log($"[RemoteSync] Initialized currentAutoRotationAngle to maxUpAngle: {bowController.maxUpAngle}");
         }
 
         // Subscribe to match state events
@@ -221,18 +221,18 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
             return;
         }
 
-        Debug.Log(
-            $"[PlayerNetworkRemoteSync] Initialized for remote player sync - playerID: {bowController.playerID}, " +
-            $"GameObject: {gameObject.name}, " +
-            $"BowController on: {bowController.gameObject.name}, " +
-            $"NetworkData set: {(NetworkData != null && NetworkData.User != null ? "YES" : "NO - will be set later")}");
-        
+        //Debug.Log(
+           // $"[PlayerNetworkRemoteSync] Initialized for remote player sync - playerID: {bowController.playerID}, " +
+          //    $"GameObject: {gameObject.name}, " +
+          //    $"BowController on: {bowController.gameObject.name}, " +
+          //    $"NetworkData set: {(NetworkData != null && NetworkData.User != null ? "YES" : "NO - will be set later")}");
+
         // If NetworkData is not set yet, log a warning (it will be set by GameManager after Start())
         if (NetworkData == null || NetworkData.User == null)
         {
-            Debug.LogWarning(
-                $"[PlayerNetworkRemoteSync] NetworkData not set yet for playerID: {bowController.playerID}. " +
-                $"GameManager should set this after Start(). Component will wait for NetworkData to be set.");
+            //Debug.LogWarning(
+              //  $"[PlayerNetworkRemoteSync] NetworkData not set yet for playerID: {bowController.playerID}. " +
+                //$"GameManager should set this after Start(). Component will wait for NetworkData to be set.");
         }
     }
 
@@ -258,8 +258,8 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
                 $"currentAngle: {bowController.currentAutoRotationAngle:F1}°, " +
                 $"direction: {estimatedRotationDirection}, " +
                 $"lastReceivedAngle: {(lastReceivedAutoRotationAngle == float.MinValue ? "NONE" : lastReceivedAutoRotationAngle.ToString("F1"))}");*/
-            }
-        
+        }
+
         // Interpolate position if needed
         if (lerpPosition)
         {
@@ -293,11 +293,11 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
             // Debug log every 60 frames to avoid spam
             if (Time.frameCount % 60 == 0)
             {
-                Debug.Log($"[RemoteSync] Lerping - playerID: {bowController.playerID}, " +
-                          $"From: {lerpFromRotation:F1}°, " +
-                          $"To: {lerpToRotation:F1}°, " +
-                          $"Progress: {(lerpTimerRotation / LerpTime):F2}, " +
-                          $"Current: {bowTransform.rotation.eulerAngles.z:F1}°");
+                //Debug.Log($"[RemoteSync] Lerping - playerID: {bowController.playerID}, " +
+                     //     $"From: {lerpFromRotation:F1}°, " +
+                     //     $"To: {lerpToRotation:F1}°, " +
+                     //     $"Progress: {(lerpTimerRotation / LerpTime):F2}, " +
+                     //     $"Current: {bowTransform.rotation.eulerAngles.z:F1}°");
             }
 
             if (lerpTimerRotation >= LerpTime)
@@ -310,9 +310,9 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
                 }
 
                 lerpRotation = false;
-                Debug.Log($"[RemoteSync] Lerp completed - playerID: {bowController.playerID}, " +
-                  //  $"Final rotation: {lerpToRotation:F1}°, " +
-                    $"Starting continuous rotation");
+                //Debug.Log($"[RemoteSync] Lerp completed - playerID: {bowController.playerID}, " +
+                    //  $"Final rotation: {lerpToRotation:F1}°, " +
+                   // $"Starting continuous rotation");
             }
         }
         // ADD THIS: Continue rotating based on last received autoRotationAngle when not lerping
@@ -332,17 +332,17 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
                 // Only log once to avoid spam
                 if (Time.frameCount % 300 == 0)
                 {
-                    Debug.Log($"[RemoteSync] No network update yet - using initial angle: {bowController.currentAutoRotationAngle:F1}°");
+                    //Debug.Log($"[RemoteSync] No network update yet - using initial angle: {bowController.currentAutoRotationAngle:F1}°");
                 }
             }
-            
+
             // Continue auto-rotation using the last received autoRotationAngle
             // This ensures smooth rotation even between network updates
             float autoRotationSpeed = bowController.autoRotationSpeed;
-            
+
             // Update the angle using estimated direction
             bowController.currentAutoRotationAngle += estimatedRotationDirection * autoRotationSpeed * Time.deltaTime;
-            
+
             // Clamp and reverse direction if needed (same as BowController.AutoRotate)
             if (bowController.currentAutoRotationAngle >= bowController.maxUpAngle)
             {
@@ -354,19 +354,19 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
                 bowController.currentAutoRotationAngle = bowController.maxDownAngle;
                 estimatedRotationDirection = 1f; // Reverse to go up
             }
-            
+
             // Apply rotation
             float zRot = bowController.currentAutoRotationAngle + bowController.rotationOffset;
             Quaternion rotation = Quaternion.Euler(0f, 0f, zRot);
             bowTransform.rotation = rotation;
-            
+
             // Also update frontHand and backHand rotations
             if (bowController.frontHand != null && bowController.backHand != null)
             {
                 bowController.frontHand.rotation = rotation;
                 bowController.backHand.rotation = rotation * Quaternion.Euler(0f, 0f, -10f);
             }
-            
+
             // Debug log every 300 frames to track continuous rotation
             if (Time.frameCount % 300 == 0)
             {
@@ -381,16 +381,16 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
             // Stop any ongoing rotation interpolation when rotation is disabled
             lerpRotation = false;
             lerpTimerRotation = 0; // Reset rotation timer
-            
+
             // Ensure rotation stays frozen - don't allow any updates
             // The rotation should remain at the last frozen position
             // This prevents flickering when rotation is disabled
-            
+
             // Debug log every 300 frames to avoid spam
             if (Time.frameCount % 300 == 0)
             {
-                Debug.Log($"[RemoteSync] Rotation disabled (frozen) - playerID: {bowController?.playerID ?? -1}, " +
-                    $"Current rotation: {bowTransform?.rotation.eulerAngles.z ?? 0f:F1}°");
+                //Debug.Log($"[RemoteSync] Rotation disabled (frozen) - playerID: {bowController?.playerID ?? -1}, " +
+                  //  $"Current rotation: {bowTransform?.rotation.eulerAngles.z ?? 0f:F1}°");
             }
         }
         else if (bowController == null)
@@ -421,17 +421,17 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
                 $"OpCode: {matchState.OpCode}, " +
                 $"Received SessionId: {matchState.UserPresence?.SessionId ?? "NULL"}, " +
                 $"Expected SessionId: {NetworkData?.User?.SessionId ?? "NULL"}, " +
-                $"NetworkData set: {(NetworkData != null && NetworkData.User != null ? "YES" : "NO")}"); */   
+                $"NetworkData set: {(NetworkData != null && NetworkData.User != null ? "YES" : "NO")}"); */
         }
-        
+
         // If NetworkData is not set, we can't identify which player this is for
         if (NetworkData == null || NetworkData.User == null)
         {
             // Log warning more frequently to catch setup issues
             if (Time.frameCount % 300 == 0)
             {
-                Debug.LogWarning($"[RemoteSync] NetworkData or User is NULL for playerID: {bowController?.playerID ?? -1} - ignoring message. " +
-                    $"GameManager should set NetworkData after Start(). GameObject: {gameObject.name}");
+                //Debug.LogWarning($"[RemoteSync] NetworkData or User is NULL for playerID: {bowController?.playerID ?? -1} - ignoring message. " +
+                  //  $"GameManager should set NetworkData after Start(). GameObject: {gameObject.name}");
             }
             return;
         }
@@ -442,11 +442,11 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
             // Log mismatch more frequently for debugging
             if (matchState.OpCode == ArrowduelNetworkManager.OPCODE_POSITION_ROTATION || Time.frameCount % 300 == 0)
             {
-                Debug.Log($"[RemoteSync] SessionId mismatch - ignoring. " +
-                    $"Received: {matchState.UserPresence?.SessionId ?? "NULL"}, " +
-                    $"Expected: {NetworkData.User.SessionId}, " +
-                    $"playerID: {bowController?.playerID ?? -1}, " +
-                    $"OpCode: {matchState.OpCode}");
+                //Debug.Log($"[RemoteSync] SessionId mismatch - ignoring. " +
+                  //  $"Received: {matchState.UserPresence?.SessionId ?? "NULL"}, " +
+                  //  $"Expected: {NetworkData.User.SessionId}, " +
+                   // $"playerID: {bowController?.playerID ?? -1}, " +
+                   // $"OpCode: {matchState.OpCode}");
             }
             return;
         }
@@ -454,9 +454,9 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         // Log when processing rotation updates - ALWAYS log to track successful receipt
         if (matchState.OpCode == ArrowduelNetworkManager.OPCODE_POSITION_ROTATION)
         {
-            Debug.Log($"[RemoteSync] Processing rotation update - playerID: {bowController?.playerID ?? -1}, " +
-                $"OpCode: {matchState.OpCode}, " +
-                $"SessionId match: YES");
+            //Debug.Log($"[RemoteSync] Processing rotation update - playerID: {bowController?.playerID ?? -1}, " +
+              //  $"OpCode: {matchState.OpCode}, " +
+              //  $"SessionId match: YES");
         }
 
         // Decide what to do based on the Operation Code
@@ -558,20 +558,20 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
             {
                 // Determine direction from angle change (we have a previous value)
                 float angleDelta = autoRotationAngle - lastReceivedAutoRotationAngle;
-                
+
                 // Handle angle wrapping (e.g., going from 89° to -89° means going down)
                 if (Mathf.Abs(angleDelta) > 90f)
                 {
                     // Large jump likely means wrapping - determine direction based on which way is shorter
                     float altDelta1 = (autoRotationAngle + 360f) - lastReceivedAutoRotationAngle;
                     float altDelta2 = autoRotationAngle - (lastReceivedAutoRotationAngle + 360f);
-                    
+
                     if (Mathf.Abs(altDelta1) < Mathf.Abs(angleDelta) && Mathf.Abs(altDelta1) < Mathf.Abs(altDelta2))
                         angleDelta = altDelta1;
                     else if (Mathf.Abs(altDelta2) < Mathf.Abs(angleDelta))
                         angleDelta = altDelta2;
                 }
-                
+
                 if (angleDelta > 0.1f) // Small threshold to avoid noise
                 {
                     estimatedRotationDirection = 1f; // Going up
@@ -596,7 +596,7 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
                     estimatedRotationDirection = autoRotationAngle > centerAngle ? -1f : 1f;
                 }
             }
-            
+
             // Store last received values for continuous rotation
             lastReceivedAutoRotationAngle = autoRotationAngle;
             lastReceivedRotationZ = rotationZ;
@@ -621,10 +621,10 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
     /// Handles rotation stop event from network.
     /// Called by ArrowduelNetworkManager when rotation stop event is received.
     /// </summary>
-   public void HandleRotationStop(byte[] state)
+    public void HandleRotationStop(byte[] state)
     {
         string json = Encoding.UTF8.GetString(state);
-        var data = JsonUtility.FromJson<ArrowduelNetworkManager.NewRotationControlData>(json);
+        var data = JsonUtility.FromJson<ArrowduelNetworkManager.RotationControlData>(json);
 
         // Stop rotation for this remote player
         rotationEnabled = false;
@@ -635,14 +635,11 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         float frozenRotation = bowTransform.rotation.eulerAngles.z;
         lerpFromRotation = frozenRotation;
         lerpToRotation = frozenRotation;
-        
-        int frozenRotationAngle = data.rotatedAngle;
-        
+
         // Ensure rotation is completely frozen
         if (bowTransform != null)
         {
-            // Quaternion frozenQuat = Quaternion.Euler(0f, 0f, frozenRotation);
-            Quaternion frozenQuat = Quaternion.Euler(0f, 0f, frozenRotationAngle);
+            Quaternion frozenQuat = Quaternion.Euler(0f, 0f, frozenRotation);
             bowTransform.rotation = frozenQuat;
 
             // Also freeze hand rotations
@@ -654,8 +651,8 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
         }
 
         // Debug log for rotation stop
-        Debug.Log($"[RemoteSync] Rotation STOPPED - playerID: {bowController.playerID}, " +
-            $"Frozen at: {frozenRotationAngle:F1}°, rotationEnabled: {rotationEnabled}");
+        //Debug.Log($"[RemoteSync] Rotation STOPPED - playerID: {bowController.playerID}, " +
+           // $"Frozen at: {frozenRotation:F1}°, rotationEnabled: {rotationEnabled}");
     }
 
 
@@ -666,7 +663,7 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
     public void HandleRotationStart(byte[] state)
     {
         string json = Encoding.UTF8.GetString(state);
-        var data = JsonUtility.FromJson<ArrowduelNetworkManager.NewRotationControlData>(json);
+        var data = JsonUtility.FromJson<ArrowduelNetworkManager.RotationControlData>(json);
 
         // Start rotation for this remote player
         rotationEnabled = true;
@@ -685,15 +682,15 @@ public class PlayerNetworkRemoteSync : MonoBehaviour
             float currentZ = bowTransform.rotation.eulerAngles.z;
             bowController.currentAutoRotationAngle = currentZ - bowController.rotationOffset;
             // Clamp to valid range
-            bowController.currentAutoRotationAngle = Mathf.Clamp(bowController.currentAutoRotationAngle, 
+            bowController.currentAutoRotationAngle = Mathf.Clamp(bowController.currentAutoRotationAngle,
                 bowController.maxDownAngle, bowController.maxUpAngle);
         }
 
         // Debug log for rotation start
-        Debug.Log($"[RemoteSync] Rotation STARTED - playerID: {bowController.playerID}, " +
-            $"Resuming from: {bowTransform.rotation.eulerAngles.z:F1}°, " +
-            $"currentAutoRotationAngle: {bowController.currentAutoRotationAngle:F1}°, " +
-            $"rotationEnabled: {rotationEnabled}");
+        //Debug.Log($"[RemoteSync] Rotation STARTED - playerID: {bowController.playerID}, " +
+           // $"Resuming from: {bowTransform.rotation.eulerAngles.z:F1}°, " +
+           // $"currentAutoRotationAngle: {bowController.currentAutoRotationAngle:F1}°, " +
+           // $"rotationEnabled: {rotationEnabled}");
     }
 }
 

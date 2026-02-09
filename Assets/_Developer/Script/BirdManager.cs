@@ -10,7 +10,7 @@ public class BirdManager : MonoBehaviour
     [SerializeField] private GameObject[] birdPrefabs;
     [SerializeField] private Transform[] spawnPoints;
 
-
+    public Vector3 direction;  // Change from private to public
 
     private void Awake()
     {
@@ -33,12 +33,9 @@ public class BirdManager : MonoBehaviour
 
     public void InitBirds()
     {
-        if (GameManager.gameMode == GameModeType.MULTIPLAYER && 
-            (NakamaNetworkManager.Instance != null && !NakamaNetworkManager.Instance.HasStateAuthorityGameData))
-        {
-            Debug.LogWarning("InitBirds called without authority. Exiting.");
-            return;
-        }
+        validSpawnPoints.Clear();
+
+        // Remove authority check - let both players spawn birds locally
 
         foreach (Transform spawnPoint in spawnPoints)
         {
@@ -49,79 +46,46 @@ public class BirdManager : MonoBehaviour
         }
 
         SpawnBird();
-
     }
 
-    async void SpawnBird()
+    void SpawnBird()
     {
-
         for (int i = 0; i < spawnPoints.Length; i++)
         {
             int birdIndex = Random.Range(0, birdPrefabs.Length);
             int spawnIndex = Random.Range(0, validSpawnPoints.Count);
 
-            GameObject bird;
-            if (GameManager.gameMode == GameModeType.SINGLEPLAYER)
-            {
-                var birdClone = Instantiate(birdPrefabs[birdIndex], validSpawnPoints[spawnIndex].position, Quaternion.identity);
-                bird = birdClone;
-                OnBirdLoad(bird);
-            }
-            else
-            {
-                bool hasAuthority = NakamaNetworkManager.Instance != null && NakamaNetworkManager.Instance.HasStateAuthorityGameData;
-                if (hasAuthority)
-                {
-                    // Use regular Instantiate for Nakama (no network spawning needed)
-                    var birdClone = Instantiate(birdPrefabs[birdIndex], validSpawnPoints[spawnIndex].position, Quaternion.identity);
-                    bird = birdClone;
-                    OnBirdLoad(bird);
-                }
-            }
+            // Spawn for both singleplayer AND multiplayer
+            var birdClone = Instantiate(birdPrefabs[birdIndex], validSpawnPoints[spawnIndex].position, Quaternion.identity);
+            OnBirdLoad(birdClone);
 
-
-            validSpawnPoints.RemoveAt(spawnIndex);
+            if (validSpawnPoints.Count > 0)
+                validSpawnPoints.RemoveAt(spawnIndex);
         }
-
     }
 
     private void OnBirdLoad(GameObject bird)
     {
-        //Debug.Log($"OnBirdLoad");
-
         LoopMovementObject movementObject = bird.GetComponent<LoopMovementObject>();
+
+        movementObject.isBird = true;
 
         if (bird.transform.position.x < 0)
         {
-            if (GameManager.gameMode == GameModeType.SINGLEPLAYER)
-            {
-                bird.transform.rotation = Quaternion.Euler(0, 180, 0);
-            }
-            else
-            {
-                // No NetworkTransform needed for Nakama - use regular transform
-                bird.transform.position = bird.transform.position;
-                bird.transform.rotation = Quaternion.Euler(0, 180, 0);
-            }
-            movementObject.directionType = LoopMovementObject.DirectionType.Left;
+            bird.transform.rotation = Quaternion.Euler(0, 180, 0);
+            movementObject.directionType = LoopMovementObject.DirectionType.Right;
+            movementObject.SetDirection(Vector3.right);  // ADD THIS - or directly set if public
         }
         else
         {
-            if (GameManager.gameMode == GameModeType.SINGLEPLAYER)
-            {
-                bird.transform.rotation = Quaternion.Euler(0, 0, 0);
-            }
-            else
-            {
-                // No NetworkTransform needed for Nakama - use regular transform
-                bird.transform.rotation = Quaternion.Euler(0, 0, 0);
-            }
+            bird.transform.rotation = Quaternion.Euler(0, 0, 0);
             movementObject.directionType = LoopMovementObject.DirectionType.Left;
+            movementObject.SetDirection(Vector3.left);   // ADD THIS - or directly set if public
         }
 
         movementObject.delayMoveStart = Random.Range(0f, 3f);
-
+        movementObject.canMove = true;
     }
-
+    
 
 }

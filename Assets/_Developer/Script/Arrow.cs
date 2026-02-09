@@ -48,7 +48,7 @@ public class Arrow : MonoBehaviour
 
     private Vector2 windForce;
 
-    private bool hasHit = false;
+    public bool hasHit = false;
     private bool isFading = false;
     private bool isBomb = false;
     private bool isWindActive = false;
@@ -244,11 +244,13 @@ public class Arrow : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // ADD THIS DEBUG LOG AT THE START
+        Debug.Log($"[Arrow] OnTriggerEnter2D called! Collision: {collision.gameObject.name}, Tag: {collision.tag}, hasHit: {hasHit}, arrowPlayerIDNetwork: {arrowPlayerIDNetwork}");
 
         if (hasHit)
         {
-            // //Debug.Log($"RETURN FROM HIT !!!!!!!!!!!!!!");
-            return;
+            Debug.Log($"RETURN FROM HIT !!!!!!!!!!!!!!");
+           // return;
         }
 
         if (collision.CompareTag("Player") || collision.CompareTag("Opponent"))
@@ -268,6 +270,7 @@ public class Arrow : MonoBehaviour
         }
         else if (collision.CompareTag("Bird"))
         {
+            Debug.Log($"OnObstacleDetect >> collision: {collision.gameObject.name}");
             OnObstacleDetect(collision);
 
         }
@@ -280,12 +283,19 @@ public class Arrow : MonoBehaviour
 
     private void OnObstacleDetect(Collider2D collision)
     {
+        Debug.Log($"OnObstacleDetect ENTERED for: {collision.gameObject.name}");
+
+        // Check if LoopMovementObject exists
+        LoopMovementObject loopMovement = collision.GetComponent<LoopMovementObject>();
+        Debug.Log($"LoopMovementObject found: {loopMovement != null}");
+
 
         hasHit = true;
         _collision = collision;
 
         AudioManager.instance.PlayBirdHitSfx();
 
+        Debug.Log($"OnObstacleDetect >> Collision: {collision.gameObject.name}");
         RigidbodyFreeze();
         if (GameManager.gameMode == GameModeType.SINGLEPLAYER)
         {
@@ -298,18 +308,19 @@ public class Arrow : MonoBehaviour
         }
         else
         {
+            Debug.Log($"OnObstacleDetect >> GameManager.hitObjectName: {hitObjectName}");
             if (String.IsNullOrEmpty(hitObjectName))
                 hitObjectName = "OBJECT";
 
             // In multiplayer, only process hits for local arrows
-            if (GameManager.gameMode == GameModeType.SINGLEPLAYER || arrowPlayerIDNetwork == 0)
-            {
+           // if (GameManager.gameMode == GameModeType.SINGLEPLAYER || arrowPlayerIDNetwork == 0)
+           // {
                 if (collision.TryGetComponent(out LoopMovementObject bird))
                 {
 
                     trail.SetActive(false);
                     arrowSprite.gameObject.SetActive(false);
-                    GetComponent<CircleCollider2D>().enabled = false;
+                    //GetComponent<CircleCollider2D>().enabled = false;
 
                     bird.GetComponent<SpriteRenderer>().enabled = false;
 
@@ -317,12 +328,14 @@ public class Arrow : MonoBehaviour
                     bird.OnBirdHitDetect_RPC();
                     Invoke(nameof(NetworkDespawn), 0.25f);
                 }
-            }
+            Destroy(gameObject, .1f);
+            
+            //}
         }
 
     }
 
-    private void BirdHitEffect(Transform _transform)
+    public void BirdHitEffect(Transform _transform)
     {
         if (type == Type.Bomb)
             featherExplosionParticle.GetComponent<AudioSource>().enabled = true;
@@ -330,6 +343,7 @@ public class Arrow : MonoBehaviour
         featherExplosionParticle.transform.SetParent(null, false);
         featherExplosionParticle.SetActive(true);
         featherExplosionParticle.transform.position = _transform.position;
+        Destroy(_transform.gameObject, 0.3f);
     }
 
     private void TwoArrowHitDetect(Collider2D collision)
@@ -375,7 +389,7 @@ public class Arrow : MonoBehaviour
 
                     trail.SetActive(false);
                     arrowSprite.gameObject.SetActive(false);
-                    GetComponent<CircleCollider2D>().enabled = false;
+                    //GetComponent<CircleCollider2D>().enabled = false;
 
                     RigidbodyFreeze();
 
@@ -395,7 +409,7 @@ public class Arrow : MonoBehaviour
 
         trail.SetActive(false);
         arrowSprite.gameObject.SetActive(false);
-        GetComponent<CircleCollider2D>().enabled = false;
+        //GetComponent<CircleCollider2D>().enabled = false;
         RigidbodyFreeze();
 
         NetworkDespawn();
@@ -405,7 +419,7 @@ public class Arrow : MonoBehaviour
     public void DelayToCall()
     {
         arrowSprite.gameObject.SetActive(false);
-        GetComponent<CircleCollider2D>().enabled = false;
+        //GetComponent<CircleCollider2D>().enabled = false;
 
     }
 
@@ -473,7 +487,7 @@ public class Arrow : MonoBehaviour
                 ArrowHitEffect();
 
                 arrowSprite.gameObject.SetActive(false);
-                GetComponent<CircleCollider2D>().enabled = false;
+                //GetComponent<CircleCollider2D>().enabled = false;
 
                 Invoke(nameof(NetworkDespawn), 0.25f);
 
@@ -482,7 +496,7 @@ public class Arrow : MonoBehaviour
                 ArrowHitEffect();
 
                 arrowSprite.gameObject.SetActive(false);
-                GetComponent<CircleCollider2D>().enabled = false;
+                //GetComponent<CircleCollider2D>().enabled = false;
 
                 Invoke(nameof(NetworkDespawn), 0.25f);
             }
@@ -566,12 +580,13 @@ public class Arrow : MonoBehaviour
 
             //     //Debug.Log($"INDEX ::::::: hitObjectName >> {hitObjectName}, {this.gameObject.name}", this);
 
-            if (hitObjectName == "PLAYER")
-            {
-                ArrowHitEffect();
+            //if (hitObjectName == "PLAYER")
+            //{
+                //ArrowHitEffect();
 
-            }
-            else if (hitObjectName == "Ground")
+           // }
+            //else
+            if (hitObjectName == "Ground")
             {
 
                 if (type == Type.Bomb)
@@ -641,7 +656,7 @@ public class Arrow : MonoBehaviour
             if (GameManager.gameMode == GameModeType.SINGLEPLAYER || arrowPlayerIDNetwork == 0)
             {
                 arrowSprite.gameObject.SetActive(false);
-                GetComponent<CircleCollider2D>().enabled = false;
+                //GetComponent<CircleCollider2D>().enabled = false;
 
                 Invoke(nameof(NetworkDespawn), 0.25f);
 

@@ -5,31 +5,26 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using Nakama;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
     public TMP_Text playerScreenNameText;
-
-    public GameObject loadingPanel;
     [Header("TESTING : ")]
     [SerializeField] private bool isLocalPlayerTest = false;
     public bool hasAutoPlay = false;
 
     [Header("UI.")]
-    [SerializeField] private TextMeshProUGUI player1NameText;
-    [SerializeField] private TextMeshProUGUI player2NameText;
-
-    [SerializeField] private Button spwanBombBtn;
+    [SerializeField] public TextMeshProUGUI player1NameText;
+    [SerializeField] public TextMeshProUGUI player2NameText;
 
 
     [Header("MULTIPLAYER REF.")]
     public GameObject player1NetworkStatePrefab;
     public GameObject player2NetworkStatePrefab;
 
-    
+
     [Header("Game State")]
     public GameState gameState;
     public OpponentType opponentType;
@@ -67,7 +62,7 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
-        
+
 
     }
 
@@ -80,8 +75,6 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"[GameManager] ArrowduelNakamaClient.Instance: {(ArrowduelNakamaClient.Instance != null ? "EXISTS" : "NULL")}");
 
         // Check if players already exist (prevent duplicate spawning)
-        spwanBombBtn.onClick.AddListener(SpawnBomb);
-
         if (playerController != null || opponentPlayerController != null)
         {
             Debug.LogWarning("[GameManager] Players already exist! Skipping spawn.");
@@ -114,25 +107,19 @@ public class GameManager : MonoBehaviour
             StartCoroutine(WaitAndSpawnPlayers());
         }
     }
-
-    public void SpawnBomb()
-    {
-        Debug.Log("[GameManager] Spawning bomb...");
-        ArrowduelNetworkManager.Instance.PowerUp_RPC();
-    }
     private IEnumerator WaitAndSpawnPlayers()
     {
         //Debug.Log("[GameManager] === WaitAndSpawnPlayers STARTED ===");
-        
+
         // Reset tracking
         trackedPlayerCount = 0;
         playersReady = false;
         readyPlayers.Clear();
         hasSentReadySignal = false;
         bothPlayersReady = false;
-        
+
         //Debug.Log("[GameManager] Reset all tracking flags");
-        
+
         // Wait a frame for scene to fully load
         yield return null;
         yield return null; // Wait another frame for all components to initialize
@@ -142,8 +129,8 @@ public class GameManager : MonoBehaviour
         {
             int presenceCount = ArrowduelNakamaClient.Instance.CurrentMatch.Presences.Count();
             trackedPlayerCount = presenceCount + 1; // +1 for self
-            //Debug.Log($"[GameManager] Initial tracked player count: {trackedPlayerCount} (presences: {presenceCount} + self)");
-            
+                                                    //Debug.Log($"[GameManager] Initial tracked player count: {trackedPlayerCount} (presences: {presenceCount} + self)");
+
             if (trackedPlayerCount >= 2)
             {
                 playersReady = true;
@@ -152,13 +139,13 @@ public class GameManager : MonoBehaviour
         }
 
         // Wait for match to be ready - need at least 2 players
-        float timeout = 15f; // Increased timeout
+        float timeout = 8f; // Increased timeout
         float elapsed = 0f;
-        float checkInterval = 0.1f; // Check every 0.1 seconds
+        float checkInterval = 0.05f; // Check every 0.1 seconds
 
         //Debug.Log("[GameManager] Waiting for match to be ready...");
         //Debug.Log($"[GameManager] ArrowduelNakamaClient.Instance: {(ArrowduelNakamaClient.Instance != null ? "EXISTS" : "NULL")}");
-        
+
         while (elapsed < timeout)
         {
             if (ArrowduelNakamaClient.Instance != null)
@@ -169,7 +156,7 @@ public class GameManager : MonoBehaviour
                     // This ensures we detect players even if they join after we check initially
                     int currentPlayerCount = trackedPlayerCount;
                     int presenceCount = ArrowduelNakamaClient.Instance.CurrentMatch.Presences.Count();
-                    
+
                     // Update tracked count if it's different (shouldn't happen, but safety check)
                     if (trackedPlayerCount == 0)
                     {
@@ -177,14 +164,14 @@ public class GameManager : MonoBehaviour
                         currentPlayerCount = trackedPlayerCount;
                         //Debug.Log($"[GameManager] Updated tracked count from presences: {trackedPlayerCount}");
                     }
-                    
+
                     // Get sorted presences for opponent lookup
                     var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
                     var sortedPresences = presences.ToList();
                     sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-                    
-                  //  //Debug.Log($"[GameManager] Match found! Tracked players: {currentPlayerCount}, Presences: {presenceCount}, playersReady: {playersReady}");
-                    
+
+                    //  //Debug.Log($"[GameManager] Match found! Tracked players: {currentPlayerCount}, Presences: {presenceCount}, playersReady: {playersReady}");
+
                     // Wait for at least 2 players total (self + at least 1 other)
                     if (currentPlayerCount >= 2 && playersReady)
                     {
@@ -195,7 +182,7 @@ public class GameManager : MonoBehaviour
                             hasSentReadySignal = true;
                             //Debug.Log("[GameManager] ✓ Sent PLAYER_READY signal");
                         }
-                        
+
                         // Check if both players are ready (including ourselves)
                         string localUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
                         if (localUserId != null && readyPlayers.Contains(localUserId))
@@ -225,7 +212,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                     //   //Debug.Log($"[GameManager] Waiting for more players... Currently: {currentPlayerCount}/2 (playersReady: {playersReady})");
+                        //   //Debug.Log($"[GameManager] Waiting for more players... Currently: {currentPlayerCount}/2 (playersReady: {playersReady})");
                     }
                 }
                 else
@@ -255,7 +242,7 @@ public class GameManager : MonoBehaviour
                 Debug.LogWarning($"[GameManager] Presences count: {presenceCount}, Total players: {totalPlayers}");
             }
         }
-        
+
         // CRITICAL: Always try to spawn players, even if match check failed
         // This ensures both clients spawn players
         Debug.Log("[GameManager2222222] === FORCING PLAYER SPAWN (timeout fallback) ===");
@@ -299,7 +286,7 @@ public class GameManager : MonoBehaviour
     {
         // Wait a frame to ensure everything is initialized
         yield return null;
-        
+
         // Start AI game with selected difficulty
         Bot(PlayerData.aiDifficulty);
     }
@@ -339,15 +326,15 @@ public class GameManager : MonoBehaviour
         // Update tracked player count
         int joinsCount = presenceEvent.Joins?.Count() ?? 0;
         int leavesCount = presenceEvent.Leaves?.Count() ?? 0;
-        
+
         //Debug.Log($"[GameManager] Presence updated: Joins={joinsCount}, Leaves={leavesCount}");
-        
+
         // Recalculate total player count from current match state
         int presenceCount = ArrowduelNakamaClient.Instance.CurrentMatch.Presences.Count();
         trackedPlayerCount = presenceCount + 1; // +1 for self
-        
+
         //Debug.Log($"[GameManager] Updated tracked player count: {trackedPlayerCount} (presences: {presenceCount} + self)");
-        
+
         // Log joining/leaving players
         if (presenceEvent.Joins != null)
         {
@@ -356,7 +343,7 @@ public class GameManager : MonoBehaviour
                 //Debug.Log($"[GameManager] Player joined: {join.Username} ({join.UserId})");
             }
         }
-        
+
         if (presenceEvent.Leaves != null)
         {
             foreach (var leave in presenceEvent.Leaves)
@@ -364,7 +351,7 @@ public class GameManager : MonoBehaviour
                 //Debug.Log($"[GameManager] Player left: {leave.Username} ({leave.UserId})");
             }
         }
-        
+
         // Check if we now have 2 players
         if (trackedPlayerCount >= 2 && !playersReady)
         {
@@ -439,20 +426,20 @@ public class GameManager : MonoBehaviour
     {
         string localPlayerName = string.IsNullOrEmpty(PlayerData.playerName) ? "Me" : PlayerData.playerName;
         string opponentName = "Opponent";
-        
+
         // Try to get opponent name from match presences in multiplayer
-        if (GameManager.gameMode == GameModeType.MULTIPLAYER && 
-            ArrowduelNakamaClient.Instance != null && 
+        if (GameManager.gameMode == GameModeType.MULTIPLAYER &&
+            ArrowduelNakamaClient.Instance != null &&
             ArrowduelNakamaClient.Instance.CurrentMatch != null)
         {
             var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
             string currentUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
-            
+
             //Debug.Log($"[GameManager] === SETTING PLAYER NAMES ===");
             //Debug.Log($"[GameManager] Local Player Name: {localPlayerName}");
             //Debug.Log($"[GameManager] Current UserId: {currentUserId}");
             //Debug.Log($"[GameManager] Presences count: {presences.Count()}");
-            
+
             // Find opponent's name from presences
             foreach (var presence in presences)
             {
@@ -464,7 +451,7 @@ public class GameManager : MonoBehaviour
                     break;
                 }
             }
-            
+
             // Also check self in presences to get our own username
             foreach (var presence in presences)
             {
@@ -476,7 +463,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        
+
         if (isLocalPlayer)
         {
             player1NameText.text = localPlayerName;
@@ -491,7 +478,7 @@ public class GameManager : MonoBehaviour
             //Debug.Log($"[GameManager] Player 1 (Left): {opponentName}");
             //Debug.Log($"[GameManager] Player 2 (Right): {localPlayerName}");
         }
-        
+
         //Debug.Log($"[GameManager] === PLAYER NAMES SET ===");
         //Debug.Log($"[GameManager] Player1NameText: {player1NameText.text}");
         //Debug.Log($"[GameManager] Player2NameText: {player2NameText.text}");
@@ -507,10 +494,10 @@ public class GameManager : MonoBehaviour
         }
 
         string playerName = string.IsNullOrEmpty(PlayerData.playerName) ? "Player" : PlayerData.playerName;
-        
+
         // Multiplayer mode mein session se naam le sakte hain
-        if (GameManager.gameMode == GameModeType.MULTIPLAYER && 
-            ArrowduelNakamaClient.Instance != null && 
+        if (GameManager.gameMode == GameModeType.MULTIPLAYER &&
+            ArrowduelNakamaClient.Instance != null &&
             ArrowduelNakamaClient.Instance.Session != null)
         {
             string sessionUsername = ArrowduelNakamaClient.Instance.Session.Username;
@@ -540,7 +527,7 @@ public class GameManager : MonoBehaviour
             else
                 Debug.Log("[GameManager] Player 2 (right) network playerID: NULL (opponentPlayerController missing)");
         }
-    
+
     }
 
 
@@ -711,113 +698,116 @@ public class GameManager : MonoBehaviour
         //Debug.Log("[GameManager] No existing players found ✓");
 
         // REPLACE: Determine if we're player 1 or 2 based on match presences
-        bool isPlayer1 = false;
-        string currentUserId = null;
-        string currentUsername = "Unknown";
+        // NAYA (lagao):
         
-        if (ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
-        {
-            //Debug.Log("[GameManager] ArrowduelNakamaClient and CurrentMatch exist ✓");
-            var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
-            int presenceCount = presences.Count();
-            int totalPlayers = presenceCount + 1; // +1 for self
-            //Debug.Log($"[GameManager] Presences count: {presenceCount}, Total players: {totalPlayers}");
 
-            // Get current user info
-            currentUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
-            currentUsername = ArrowduelNakamaClient.Instance.Session?.Username ?? PlayerData.playerName ?? "Unknown";
-            
-            //Debug.Log($"[GameManager] Current UserId: {currentUserId ?? "NULL"}");
-            //Debug.Log($"[GameManager] Current Username: {currentUsername}");
+        bool isPlayer1 = ArrowduelNakamaClient.Instance.IsHost;
+        string currentUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
+        string currentUsername = ArrowduelNakamaClient.Instance.Session?.Username ?? PlayerData.playerName ?? "Unknown";
 
-            // Sort presences by UserId to determine player order
-            var sortedPresences = presences.ToList();
-            sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-            
-            //Debug.Log($"[GameManager] Sorted presences:");
-            for (int i = 0; i < sortedPresences.Count; i++)
-            {
-                bool isSelf = sortedPresences[i].UserId == currentUserId;
-                //Debug.Log($"[GameManager]   [{i}] UserId: {sortedPresences[i].UserId}, Username: {sortedPresences[i].Username ?? "NULL"} {(isSelf ? "[SELF]" : "")}");
-            }
+        // if (ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
+        // {
+        //     //Debug.Log("[GameManager] ArrowduelNakamaClient and CurrentMatch exist ✓");
+        //     var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
+        //     int presenceCount = presences.Count();
+        //     int totalPlayers = presenceCount + 1; // +1 for self
+        //     //Debug.Log($"[GameManager] Presences count: {presenceCount}, Total players: {totalPlayers}");
 
-            // Determine player order: create list of all UserIds (presences + self), sort, and check if we're first
-            var allUserIds = new List<string>();
-            foreach (var p in sortedPresences)
-            {
-                if (!string.IsNullOrEmpty(p.UserId))
-                {
-                    allUserIds.Add(p.UserId);
-                }
-            }
-            if (!string.IsNullOrEmpty(currentUserId) && !allUserIds.Contains(currentUserId))
-            {
-                allUserIds.Add(currentUserId);
-            }
-            
-            allUserIds.Sort();
-            
-            //Debug.Log($"[GameManager] All UserIds sorted (for player order):");
-            for (int i = 0; i < allUserIds.Count; i++)
-            {
-                bool isSelf = allUserIds[i] == currentUserId;
-                //Debug.Log($"[GameManager]   [{i}] UserId: {allUserIds[i]} {(isSelf ? "[SELF - THIS PLAYER]" : "")}");
-            }
-            
-            // Determine player order: first player alphabetically by UserId is Player 1
-            if (allUserIds.Count > 0 && !string.IsNullOrEmpty(currentUserId))
-            {
-                isPlayer1 = allUserIds[0] == currentUserId;
-                //Debug.Log($"[GameManager] Player order determined: isPlayer1 = {isPlayer1} (first UserId: {allUserIds[0]}, our UserId: {currentUserId})");
-            }
-            else if (currentUserId != null)
-            {
-                // Fallback: if no presences, we're player 1
-                Debug.LogWarning("[GameManager] No UserIds found, defaulting to Player 1");
-                isPlayer1 = true;
-            }
+        //     // Get current user info
+        //     currentUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
+        //     currentUsername = ArrowduelNakamaClient.Instance.Session?.Username ?? PlayerData.playerName ?? "Unknown";
 
-            //Debug.Log($"[GameManager] Is Player 1: {isPlayer1}");
-            
-            // Debug: Show both player names
-            if (sortedPresences.Count >= 1)
-            {
-                string player1Name = sortedPresences[0].Username ?? sortedPresences[0].UserId ?? "Player1";
-                //Debug.Log($"[GameManager] === PLAYER NAMES DEBUG ===");
-                //Debug.Log($"[GameManager] Player 1 Name: {player1Name}");
-                
-                if (sortedPresences.Count >= 2)
-                {
-                    string player2Name = sortedPresences[1].Username ?? sortedPresences[1].UserId ?? "Player2";
-                    //Debug.Log($"[GameManager] Player 2 Name: {player2Name}");
-                }
-                else
-                {
-                    //Debug.Log($"[GameManager] Player 2 Name: Waiting for opponent...");
-                }
-                
-                //Debug.Log($"[GameManager] Local Player Name (from PlayerData): {PlayerData.playerName ?? "NULL"}");
-                //Debug.Log($"[GameManager] Local Player Name (from Session): {currentUsername}");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager] === NAKAMA CLIENT/MATCH CHECK FAILED ===");
-            Debug.LogWarning(
-                $"[GameManager] ArrowduelNakamaClient.Instance: {(ArrowduelNakamaClient.Instance != null ? "EXISTS" : "NULL")}");
-            if (ArrowduelNakamaClient.Instance != null)
-            {
-                Debug.LogWarning(
-                    $"[GameManager] CurrentMatch: {(ArrowduelNakamaClient.Instance.CurrentMatch != null ? "EXISTS" : "NULL")}");
-            }
-            
-            // Fallback: Default to Player 1 if we can't determine order
-            // This ensures players still spawn even if match info is unavailable
-            Debug.LogWarning("[GameManager] Defaulting to Player 1 due to missing match info");
-            isPlayer1 = true;
-            currentUserId = "unknown";
-            currentUsername = PlayerData.playerName ?? "Player";
-        }
+        //     //Debug.Log($"[GameManager] Current UserId: {currentUserId ?? "NULL"}");
+        //     //Debug.Log($"[GameManager] Current Username: {currentUsername}");
+
+        //     // Sort presences by UserId to determine player order
+        //     var sortedPresences = presences.ToList();
+        //     sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
+
+        //     //Debug.Log($"[GameManager] Sorted presences:");
+        //     for (int i = 0; i < sortedPresences.Count; i++)
+        //     {
+        //         bool isSelf = sortedPresences[i].UserId == currentUserId;
+        //         //Debug.Log($"[GameManager]   [{i}] UserId: {sortedPresences[i].UserId}, Username: {sortedPresences[i].Username ?? "NULL"} {(isSelf ? "[SELF]" : "")}");
+        //     }
+
+        //     // Determine player order: create list of all UserIds (presences + self), sort, and check if we're first
+        //     var allUserIds = new List<string>();
+        //     foreach (var p in sortedPresences)
+        //     {
+        //         if (!string.IsNullOrEmpty(p.UserId))
+        //         {
+        //             allUserIds.Add(p.UserId);
+        //         }
+        //     }
+        //     if (!string.IsNullOrEmpty(currentUserId) && !allUserIds.Contains(currentUserId))
+        //     {
+        //         allUserIds.Add(currentUserId);
+        //     }
+
+        //     allUserIds.Sort();
+
+        //     //Debug.Log($"[GameManager] All UserIds sorted (for player order):");
+        //     for (int i = 0; i < allUserIds.Count; i++)
+        //     {
+        //         bool isSelf = allUserIds[i] == currentUserId;
+        //         //Debug.Log($"[GameManager]   [{i}] UserId: {allUserIds[i]} {(isSelf ? "[SELF - THIS PLAYER]" : "")}");
+        //     }
+
+        //     // Determine player order: first player alphabetically by UserId is Player 1
+        //     if (allUserIds.Count > 0 && !string.IsNullOrEmpty(currentUserId))
+        //     {
+        //         isPlayer1 = allUserIds[0] == currentUserId;
+        //         //Debug.Log($"[GameManager] Player order determined: isPlayer1 = {isPlayer1} (first UserId: {allUserIds[0]}, our UserId: {currentUserId})");
+        //     }
+        //     else if (currentUserId != null)
+        //     {
+        //         // Fallback: if no presences, we're player 1
+        //         Debug.LogWarning("[GameManager] No UserIds found, defaulting to Player 1");
+        //         isPlayer1 = true;
+        //     }
+
+        //     //Debug.Log($"[GameManager] Is Player 1: {isPlayer1}");
+
+        //     // Debug: Show both player names
+        //     if (sortedPresences.Count >= 1)
+        //     {
+        //         string player1Name = sortedPresences[0].Username ?? sortedPresences[0].UserId ?? "Player1";
+        //         //Debug.Log($"[GameManager] === PLAYER NAMES DEBUG ===");
+        //         //Debug.Log($"[GameManager] Player 1 Name: {player1Name}");
+
+        //         if (sortedPresences.Count >= 2)
+        //         {
+        //             string player2Name = sortedPresences[1].Username ?? sortedPresences[1].UserId ?? "Player2";
+        //             //Debug.Log($"[GameManager] Player 2 Name: {player2Name}");
+        //         }
+        //         else
+        //         {
+        //             //Debug.Log($"[GameManager] Player 2 Name: Waiting for opponent...");
+        //         }
+
+        //         //Debug.Log($"[GameManager] Local Player Name (from PlayerData): {PlayerData.playerName ?? "NULL"}");
+        //         //Debug.Log($"[GameManager] Local Player Name (from Session): {currentUsername}");
+        //     }
+        // }
+        // else
+        // {
+        //     Debug.LogWarning("[GameManager] === NAKAMA CLIENT/MATCH CHECK FAILED ===");
+        //     Debug.LogWarning(
+        //         $"[GameManager] ArrowduelNakamaClient.Instance: {(ArrowduelNakamaClient.Instance != null ? "EXISTS" : "NULL")}");
+        //     if (ArrowduelNakamaClient.Instance != null)
+        //     {
+        //         Debug.LogWarning(
+        //             $"[GameManager] CurrentMatch: {(ArrowduelNakamaClient.Instance.CurrentMatch != null ? "EXISTS" : "NULL")}");
+        //     }
+
+        //     // Fallback: Default to Player 1 if we can't determine order
+        //     // This ensures players still spawn even if match info is unavailable
+        //     Debug.LogWarning("[GameManager] Defaulting to Player 1 due to missing match info");
+        //     isPlayer1 = true;
+        //     currentUserId = "unknown";
+        //     currentUsername = PlayerData.playerName ?? "Player";
+   // }
 
         // Around line 488, replace the comment with actual spawning code:
 
@@ -840,7 +830,7 @@ public class GameManager : MonoBehaviour
 
             playerController.playerID = 0;
             playerController.playerType = BowController.PlayerType.Player;
-            
+
             // Attach local sync component to Player 1 (we control this)
             var localSync = player1Obj.GetComponent<PlayerNetworkLocalSync>();
             if (localSync == null)
@@ -868,19 +858,19 @@ public class GameManager : MonoBehaviour
 
             opponentPlayerController.playerID = 1;
             opponentPlayerController.playerType = BowController.PlayerType.Player;
-            
+
             // ADD THIS: Remove PlayerNetworkLocalSync from remote player if it exists
             var localSyncToRemove = player2Obj.GetComponent<PlayerNetworkLocalSync>();
             if (localSyncToRemove != null)
             {
                 //Debug.Log(
-                    //$"[GameManager] Removing PlayerNetworkLocalSync from remote Player 2 (opponent controls this)");
+                //$"[GameManager] Removing PlayerNetworkLocalSync from remote Player 2 (opponent controls this)");
                 Destroy(localSyncToRemove);
             }
 
             yield return null; // Wait a frame for component destruction
 
-// CRITICAL: Remove PlayerNetworkRemoteSync from all child objects first
+            // CRITICAL: Remove PlayerNetworkRemoteSync from all child objects first
             // This prevents components from being on child objects like "Bow Handler", "Hand Pivots", etc.
             var allRemoteSyncs = player2Obj.GetComponentsInChildren<PlayerNetworkRemoteSync>(true);
             foreach (var sync in allRemoteSyncs)
@@ -893,17 +883,17 @@ public class GameManager : MonoBehaviour
             }
             yield return null; // Wait for destruction
 
-// Attach remote sync component to Player 2 (opponent controls this) - ONLY on root
+            // Attach remote sync component to Player 2 (opponent controls this) - ONLY on root
             var remoteSync = player2Obj.GetComponent<PlayerNetworkRemoteSync>();
             if (remoteSync == null)
             {
                 remoteSync = player2Obj.AddComponent<PlayerNetworkRemoteSync>();
             }
 
-// CRITICAL: Wait a frame to ensure Start() has been called and bowController is initialized
+            // CRITICAL: Wait a frame to ensure Start() has been called and bowController is initialized
             yield return null;
 
-// Setup remote player network data
+            // Setup remote player network data
             if (ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
             {
                 var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
@@ -932,7 +922,7 @@ public class GameManager : MonoBehaviour
                         $"[GameManager] ✗ Could not find opponent presence for Player 2 remote sync! Presences count: {sortedPresences.Count}");
                 }
             }
-            
+
             //Debug.Log("[GameManager] Player 2 (right - opponent) setup complete ✓");
 
             SetPlayersName(true);
@@ -953,22 +943,22 @@ public class GameManager : MonoBehaviour
                 yield break;
             }
 
-// CRITICAL: Set playerID before removing components
+            // CRITICAL: Set playerID before removing components
             playerController.playerID = 0;
             playerController.playerType = BowController.PlayerType.Player;
 
-// Remove PlayerNetworkLocalSync from remote player if it exists
+            // Remove PlayerNetworkLocalSync from remote player if it exists
             var localSyncToRemove1 = player1Obj.GetComponent<PlayerNetworkLocalSync>();
             if (localSyncToRemove1 != null)
             {
                 //Debug.Log(
-                    //$"[GameManager] Removing PlayerNetworkLocalSync from remote Player 1 (opponent controls this)");
+                //$"[GameManager] Removing PlayerNetworkLocalSync from remote Player 1 (opponent controls this)");
                 Destroy(localSyncToRemove1);
             }
 
             yield return null; // Wait a frame for component destruction
 
-// CRITICAL: Remove PlayerNetworkRemoteSync from all child objects first
+            // CRITICAL: Remove PlayerNetworkRemoteSync from all child objects first
             // This prevents components from being on child objects like "Bow Handler", "Hand Pivots", etc.
             var allRemoteSyncs1 = player1Obj.GetComponentsInChildren<PlayerNetworkRemoteSync>(true);
             foreach (var sync in allRemoteSyncs1)
@@ -981,17 +971,17 @@ public class GameManager : MonoBehaviour
             }
             yield return null; // Wait for destruction
 
-// Attach remote sync component to Player 1 (opponent controls this) - ONLY on root
+            // Attach remote sync component to Player 1 (opponent controls this) - ONLY on root
             var remoteSync1 = player1Obj.GetComponent<PlayerNetworkRemoteSync>();
             if (remoteSync1 == null)
             {
                 remoteSync1 = player1Obj.AddComponent<PlayerNetworkRemoteSync>();
             }
 
-// CRITICAL: Wait a frame to ensure Start() has been called and bowController is initialized
+            // CRITICAL: Wait a frame to ensure Start() has been called and bowController is initialized
             yield return null;
 
-// Setup remote player network data for opponent
+            // Setup remote player network data for opponent
             if (ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
             {
                 var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
@@ -1037,7 +1027,7 @@ public class GameManager : MonoBehaviour
 
             opponentPlayerController.playerID = 1;
             opponentPlayerController.playerType = BowController.PlayerType.Player;
-            
+
             // Attach local sync component to Player 2 (we control this)
             var localSync2 = player2Obj.GetComponent<PlayerNetworkLocalSync>();
             if (localSync2 == null)
@@ -1058,7 +1048,7 @@ public class GameManager : MonoBehaviour
         //Debug.Log("[GameManager] === VERIFYING PLAYER SPAWN ===");
         //Debug.Log($"[GameManager] playerController: {(playerController != null ? "SPAWNED ✓" : "MISSING ✗")}");
         //Debug.Log($"[GameManager] opponentPlayerController: {(opponentPlayerController != null ? "SPAWNED ✓" : "MISSING ✗")}");
-        
+
         if (playerController == null || opponentPlayerController == null)
         {
             Debug.LogError("[GameManager] === CRITICAL: PLAYER SPAWN FAILED ===");
@@ -1080,7 +1070,7 @@ public class GameManager : MonoBehaviour
         //Debug.Log("[GameManager] === SpawnPlayerNakama COMPLETE ===");
     }
 
-    
+
     public void OnGameStart()
     {
         StartCoroutine(IStartGame());
@@ -1114,22 +1104,23 @@ public class GameManager : MonoBehaviour
     private void OnMatchStateReceived(IMatchState matchState)
     {
         const long OPCODE_HIT_TARGET = 7;
-        
-        if (matchState.OpCode == OPCODE_HIT_TARGET)
-        {
-            string json = System.Text.Encoding.UTF8.GetString(matchState.State);
-            var data = JsonUtility.FromJson<HitTargetData>(json);
-            Debug.Log($"[GameManager] OnMatchStateReceived: HitTargetData - isPlayerArrow: {data.isPlayerArrow}");
-            GameManager.onHitTarget?.Invoke(data.isPlayerArrow);
-        }
-        else if (matchState.OpCode == ArrowduelNetworkManager.OPCODE_PLAYER_READY)
+
+        //if (matchState.OpCode == OPCODE_HIT_TARGET)
+       //{
+        //    string json = System.Text.Encoding.UTF8.GetString(matchState.State);
+        //    var data = JsonUtility.FromJson<HitTargetData>(json);
+        //    Debug.Log($"[GameManager] OnMatchStateReceived: HitTargetData - isPlayerArrow: {data.isPlayerArrow}");
+        //    GameManager.onHitTarget?.Invoke(data.isPlayerArrow);
+        //}
+       // else
+        if (matchState.OpCode == ArrowduelNetworkManager.OPCODE_PLAYER_READY)
         {
             // Handle player ready signal
             HandlePlayerReadySignal(matchState);
         }
         // Handle other opcodes here (wind, theme change, level change, etc.) as needed
     }
-    
+
     /// <summary>
     /// Sends a ready signal to indicate this player is ready to spawn.
     /// </summary>
@@ -1140,28 +1131,28 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("[GameManager] Cannot send ready signal - no match available");
             return;
         }
-        
+
         string localUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
         if (string.IsNullOrEmpty(localUserId))
         {
             Debug.LogWarning("[GameManager] Cannot send ready signal - no user ID");
             return;
         }
-        
+
         // Add ourselves to ready players immediately
         readyPlayers.Add(localUserId);
-        
+
         // Send ready signal with user ID (simple JSON format)
         string json = $"{{\"userId\":\"{localUserId}\"}}";
-        
+
         await ArrowduelNakamaClient.Instance.SendMatchStateAsync(
             ArrowduelNetworkManager.OPCODE_PLAYER_READY,
             json
         );
-        
+
         //Debug.Log($"[GameManager] Sent PLAYER_READY signal for user: {localUserId}");
     }
-    
+
     /// <summary>
     /// Handles incoming player ready signals from other players.
     /// </summary>
@@ -1169,22 +1160,22 @@ public class GameManager : MonoBehaviour
     {
         if (matchState?.UserPresence == null)
             return;
-        
+
         string userId = matchState.UserPresence.UserId;
         if (string.IsNullOrEmpty(userId))
             return;
-        
+
         // Add to ready players set
         if (!readyPlayers.Contains(userId))
         {
             readyPlayers.Add(userId);
             //Debug.Log($"[GameManager] ✓ Player ready signal received from: {userId} (Total ready: {readyPlayers.Count})");
-            
+
             // Check if we should spawn now
             CheckIfBothPlayersReady();
         }
     }
-    
+
     /// <summary>
     /// Checks if both players have sent ready signals and spawns if ready.
     /// </summary>
@@ -1192,23 +1183,23 @@ public class GameManager : MonoBehaviour
     {
         if (bothPlayersReady)
             return; // Already spawning
-        
+
         if (ArrowduelNakamaClient.Instance == null || ArrowduelNakamaClient.Instance.CurrentMatch == null)
             return;
-        
+
         string localUserId = ArrowduelNakamaClient.Instance.Session?.UserId;
         if (string.IsNullOrEmpty(localUserId))
             return;
-        
+
         // Check if we're ready
         if (!readyPlayers.Contains(localUserId))
             return;
-        
+
         // Check if opponent is ready
         var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
         var sortedPresences = presences.ToList();
         sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-        
+
         var opponentPresence = sortedPresences.FirstOrDefault(p => p.UserId != localUserId);
         if (opponentPresence != null && readyPlayers.Contains(opponentPresence.UserId))
         {

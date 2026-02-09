@@ -14,8 +14,7 @@ GameObject:
   - component: {fileID: 1878884306286986624}
   - component: {fileID: 6688555924100946587}
   - component: {fileID: 3003333340563374584}
-  - component: {fileID: 4323784562986311629}
-  - component: {fileID: 5023323865822705563}
+  - component: {fileID: -54384882619892808}
   m_Layer: 11
   m_Name: Bird1_3_0
   m_TagString: Bird
@@ -59,6 +58,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -80,6 +81,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -2
@@ -196,7 +198,7 @@ MonoBehaviour:
   isLoopMovement: 1
   xBoundary: 30
   delayMoveStart: 0
-  canMove: 0
+  canMove: 1
   hasHurt: 0
   _speed: 1
   _sprite: {fileID: 1878884306286986627}
@@ -204,7 +206,7 @@ MonoBehaviour:
   anim: {fileID: 1878884306286986636}
   _collider: []
   directionType: 0
---- !u!114 &4323784562986311629
+--- !u!114 &-54384882619892808
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -213,34 +215,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1878884306286986637}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 11500000, guid: 359afa5c6c7e7d6409ce6e4806411ec5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
-  SortKey: 750320226
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 3003333340563374584}
-  - {fileID: 5023323865822705563}
-  ForceRemoteRenderTimeframe: 0
---- !u!114 &5023323865822705563
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1878884306286986637}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _stateAuthorityChangeErrorCorrectionDelta: 0
-  SyncScale: 0
-  SyncParent: 0
-  _autoAOIOverride: 1
-  DisableSharedModeInterpolation: 0
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerNetworkLocalSync
+  StateFrequency: 0.1
+  SendInputImmediately: 1
 --- !u!1 &6566632130566443950
 GameObject:
   m_ObjectHideFlags: 0

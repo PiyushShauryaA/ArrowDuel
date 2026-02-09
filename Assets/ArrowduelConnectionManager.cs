@@ -14,6 +14,8 @@ public class ArrowduelConnectionManager : MonoBehaviour
 {
     public static ArrowduelConnectionManager Instance { get; private set; }
     [Header("UI References")] public Button connectButton;
+
+    public string playerName;
     public TMP_Text statusText;
     public TMP_InputField usernameInput;
 
@@ -100,7 +102,12 @@ public class ArrowduelConnectionManager : MonoBehaviour
             return;
         }
 
-        //usernameInput.text=PlayerInfoManager.Instance.playerName;
+        if (PlayerPrefs.HasKey("PlayerName"))
+        {
+            string savedName = PlayerPrefs.GetString("PlayerName");
+            usernameInput.text = savedName;
+        }
+
         ResetState();
         UpdateStatus("Enter username and press Connect.");
         connectButton.interactable = true;
@@ -443,7 +450,8 @@ public class ArrowduelConnectionManager : MonoBehaviour
     {
         ResetState();
         UpdateStatus(userMessage);
-        connectButton.interactable = true;
+        if (connectButton != null)
+            connectButton.interactable = true;
     }
 
     private void HandleMatchJoined(Nakama.IMatch match)
@@ -737,6 +745,10 @@ public class ArrowduelConnectionManager : MonoBehaviour
         {
             return;
         }
+
+        // Don't handle if we're no longer in the menu scene
+        if (this == null || connectButton == null)
+            return;
 
         Debug.LogWarning($"[ArrowduelConnectionManager] Socket closed: {reason ?? "Unknown reason"}");
         HandleConnectionFailure("Disconnected from server. Please try again.");

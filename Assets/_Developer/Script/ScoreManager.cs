@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Linq;
 using TMPro;
-using UnityEngine;
+using UnityEngine;      
 using UnityEngine.SceneManagement;
 using Nakama; 
-
+using UnityEngine.UI;
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager instance;
@@ -18,6 +18,8 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI gameOverText;
     [SerializeField] private GameObject gameOverPanel;
+
+    [SerializeField] private Button homeButton  ;
 
     private string matchResultStr;
 
@@ -50,7 +52,22 @@ public class ScoreManager : MonoBehaviour
         UpdateScoreDisplay();
         gameOverPanel.SetActive(false);
 
-        GameManager.onHitTarget += OnHitTarget;
+        GameManager.onHitTarget += OnHitTarget; 
+        homeButton.onClick.AddListener(OnHomeButtonClick);
+    }
+
+    async private void OnHomeButtonClick()
+    {
+        Debug.Log("OnHomeButtonClick");
+
+        // Pehle match leave karo, phir disconnect karo
+        if (ArrowduelNakamaClient.Instance != null)
+        {
+            await ArrowduelNakamaClient.Instance.LeaveMatchAsync();
+            await ArrowduelNakamaClient.Instance.DisconnectAsync();
+        }
+
+        SceneManager.LoadScene("menu");  
     }
 
     private void OnDestroy()
@@ -159,18 +176,19 @@ public class ScoreManager : MonoBehaviour
 
     public void EndGame(bool forceToWon = false)
     {
+        Debug.Log($"EndGame > forceToWon: {forceToWon}");
         GameManager.instance.gameState = GameState.GameOver;
         gameOverPanel.SetActive(true);
 
         string resultStr = "GAME OVER!";
         // Determine if we're player 1 (host) in multiplayer
         bool isPlayer1Local = true;
-        if (GameManager.gameMode == GameModeType.MULTIPLAYER && NakamaClient.Instance != null && NakamaClient.Instance.CurrentMatch != null)
+        if (GameManager.gameMode == GameModeType.MULTIPLAYER && ArrowduelNakamaClient.Instance != null && ArrowduelNakamaClient.Instance.CurrentMatch != null)
         {
-            var presences = NakamaClient.Instance.CurrentMatch.Presences;
+            var presences = ArrowduelNakamaClient.Instance.CurrentMatch.Presences;
             var sortedPresences = presences.ToList();
             sortedPresences.Sort((a, b) => string.Compare(a.UserId, b.UserId));
-            isPlayer1Local = sortedPresences.Count > 0 && sortedPresences[0].UserId == NakamaClient.Instance.UserId;
+            isPlayer1Local = sortedPresences.Count > 0 && sortedPresences[0].UserId == ArrowduelNakamaClient.Instance.Session?.UserId;
         }
 
         if (forceToWon)
@@ -213,8 +231,17 @@ public class ScoreManager : MonoBehaviour
         {
             resultStr = "GAME DRAW!";
         }
+        // After line 216 (end of the if/else block), before setting gameOverText.text:
+        string winnerName = "N/A";
+        if (playerScore >= pointsToWin)
+            winnerName = GameManager.instance.player1NameText.text;
+        else if (opponentScore >= pointsToWin)
+            winnerName = GameManager.instance.player2NameText.text;
+        else
+            winnerName = "DRAW";
 
-        gameOverText.text = resultStr;
+        Debug.Log($"[ScoreManager] Game Over! Winner: {winnerName} | Result: {resultStr} | Score: {playerScore}-{opponentScore} | isPlayer1Local: {isPlayer1Local}");
+        gameOverText.text = resultStr+" "+winnerName+" "+playerScore+" "+opponentScore;
         // Invoke(nameof(ActiveGameOverPanel), 5f);
 
         if (GameManager.gameMode == GameModeType.MULTIPLAYER)
